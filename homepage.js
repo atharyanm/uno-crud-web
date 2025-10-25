@@ -1,5 +1,6 @@
 // homepage.js - Homepage with dynamic page loading
 let currentPage = 'dashboard';
+let winrateFormInitialized = false;
 
 $(document).ready(function() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -141,66 +142,66 @@ async function loadDashboardContent() {
 
         // Setup modal functionality for add winrate
         const addWinrateModal = new bootstrap.Modal(document.getElementById('add-winrate-modal'));
-        document.getElementById('add-winrate-btn').addEventListener('click', async () => {
-            await loadPlayersAndPlaces();
-            addWinrateModal.show();
-        });
 
-        // Add winrate form
-        document.getElementById('add-winrate-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = document.getElementById('add-winrate-form');
-            const submitBtn = document.querySelector('#add-winrate-modal button[type="submit"]');
+        if (!winrateFormInitialized) {
+            $('#add-winrate-btn').on('click', async () => {
+                await loadPlayersAndPlaces();
+                addWinrateModal.show();
+            });
 
-            // Show loading
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Adding...';
+            $('#add-winrate-form').on('submit', async (e) => {
+                e.preventDefault();
 
-            try {
-                const playerId = document.getElementById('winrate-player').value;
-                const placeId = document.getElementById('winrate-place').value;
-                const lose = document.querySelector('input[name="winrate-result"]:checked').value;
-                const date = document.getElementById('winrate-date').value;
+                const submitBtn = document.querySelector('#add-winrate-modal button[type="submit"]');
+                if (submitBtn.disabled) return;
 
-                // Get player and place details
-                const playersData = await fetchData('Player');
-                const placesData = await fetchData('Place');
-                const player = playersData.find(p => p.id_player === playerId);
-                const place = placesData.find(p => p.id_place === placeId);
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Adding...';
 
-                if (!player || !place) {
-                    alert('Invalid player or place selected.');
-                    return;
+                try {
+                    const playerId = $('#winrate-player').val();
+                    const placeId = $('#winrate-place').val();
+                    const lose = $('input[name="winrate-result"]:checked').val();
+                    const date = $('#winrate-date').val();
+
+                    // Get player and place details
+                    const playersData = await fetchData('Player');
+                    const placesData = await fetchData('Place');
+                    const player = playersData.find(p => p.id_player === playerId);
+                    const place = placesData.find(p => p.id_place === placeId);
+
+                    if (!player || !place) {
+                        alert('Invalid player or place selected.');
+                        return;
+                    }
+
+                    const newData = {
+                        name_player: player.name,
+                        name_place: place.name,
+                        lose: parseInt(lose),
+                        date: date,
+                        id_place: placeId,
+                        id_player: playerId
+                    };
+
+                    const result = await insertData('Data', newData);
+                    if (result) {
+                        addWinrateModal.hide();
+                        $('#add-winrate-form')[0].reset();
+                        await loadDashboardContent();
+                    } else {
+                        alert('Failed to add winrate.');
+                    }
+                } catch (err) {
+                    console.error('Error adding winrate:', err);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add Winrate';
                 }
+            });
 
-                const newData = {
-                    name_player: player.name,
-                    name_place: place.name,
-                    lose: parseInt(lose),
-                    date: date,
-                    id_place: placeId,
-                    id_player: playerId
-                };
-
-                const result = await insertData('Data', newData);
-                if (result) {
-                    console.log('Winrate added successfully');
-                    document.getElementById('add-winrate-form').reset();
-                    addWinrateModal.hide();
-                    await loadDashboardContent(); // Reload dashboard data
-                } else {
-                    console.error('Failed to add winrate');
-                    alert('Failed to add winrate. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error adding winrate:', error);
-                alert('Error adding winrate. Please try again.');
-            } finally {
-                // Hide loading
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Winrate';
-            }
-        });
+            winrateFormInitialized = true; // Prevent re-initialization
+        }
     } catch (error) {
         console.error('Error loading dashboard:', error);
         $('#overall-win-rate').text('Error loading data');

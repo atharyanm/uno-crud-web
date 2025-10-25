@@ -26,6 +26,12 @@ async function fetchData(table) {
 
 async function insertData(table, data) {
     try {
+        if (table === 'Data') {
+            // Generate sequential id for Data table
+            const existingData = await fetchData('Data');
+            const maxId = existingData.length > 0 ? Math.max(...existingData.map(d => d.id)) : 0;
+            data.id = maxId + 1;
+        }
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
             method: 'POST',
             headers: {
