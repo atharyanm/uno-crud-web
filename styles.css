@@ -9,11 +9,17 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     position: fixed;
     top: 0;
+    left: 0;
     width: 250px;
     height: 100vh;
     z-index: 1000;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    transition: left 0.3s ease;
+    transition: width 0.3s ease;
+}
+
+.sidebar.hidden {
+    width: 0;
+    overflow: hidden;
 }
 
 .sidebar .nav-link {
@@ -42,6 +48,11 @@ main {
     margin-left: 250px;
     min-height: 100vh;
     padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+main.main-hidden {
+    margin-left: 0;
 }
 
 /* Card styles */

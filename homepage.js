@@ -37,14 +37,14 @@ $(document).ready(function() {
 
         if (sidebar.hasClass('hidden')) {
             // Show sidebar
-            sidebar.removeClass('hidden').css('left', '0');
-            main.css('margin-left', '250px');
+            sidebar.removeClass('hidden');
+            main.removeClass('main-hidden');
             $(this).css('left', '230px');
             icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
         } else {
             // Hide sidebar
-            sidebar.addClass('hidden').css('left', '-250px');
-            main.css('margin-left', '0');
+            sidebar.addClass('hidden');
+            main.addClass('main-hidden');
             $(this).css('left', '10px');
             icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
         }
@@ -54,13 +54,11 @@ $(document).ready(function() {
     function updateSidebarToggle() {
         if ($(window).width() < 768) {
             // Mobile: sidebar is hidden by default
-            $('#sidebar').addClass('hidden').css('left', '-250px');
-            $('main').css('margin-left', '0');
+            $('#sidebar').addClass('hidden').removeClass('show');
             $('#sidebar-toggle').css('left', '10px').find('i').removeClass('fa-chevron-right').addClass('fa-chevron-left');
         } else {
             // Desktop: sidebar is shown by default
-            $('#sidebar').removeClass('hidden').css('left', '0');
-            $('main').css('margin-left', '250px');
+            $('#sidebar').removeClass('hidden').addClass('show');
             $('#sidebar-toggle').css('left', '230px').find('i').removeClass('fa-chevron-left').addClass('fa-chevron-right');
         }
     }
