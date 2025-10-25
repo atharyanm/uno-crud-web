@@ -29,17 +29,48 @@ $(document).ready(function() {
         }
     });
 
-    // Sidebar toggle for mobile
-    $('#sidebar-open').on('click', function() {
-        $('#sidebar').collapse('show');
-        $('#sidebar-open').hide();
-        $('#sidebar-close').show();
+    // Sidebar toggle functionality
+    $('#sidebar-toggle').on('click', function() {
+        const sidebar = $('#sidebar');
+        const main = $('main');
+        const icon = $(this).find('i');
+
+        if (sidebar.hasClass('hidden')) {
+            // Show sidebar
+            sidebar.removeClass('hidden').css('left', '0');
+            main.css('margin-left', '250px');
+            $(this).css('left', '230px');
+            icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+        } else {
+            // Hide sidebar
+            sidebar.addClass('hidden').css('left', '-250px');
+            main.css('margin-left', '0');
+            $(this).css('left', '10px');
+            icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
+        }
     });
 
-    $('#sidebar-close').on('click', function() {
-        $('#sidebar').collapse('hide');
-        $('#sidebar-close').hide();
-        $('#sidebar-open').show();
+    // Handle responsive sidebar behavior
+    function updateSidebarToggle() {
+        if ($(window).width() < 768) {
+            // Mobile: sidebar is hidden by default
+            $('#sidebar').addClass('hidden').css('left', '-250px');
+            $('main').css('margin-left', '0');
+            $('#sidebar-toggle').css('left', '10px').find('i').removeClass('fa-chevron-right').addClass('fa-chevron-left');
+        } else {
+            // Desktop: sidebar is shown by default
+            $('#sidebar').removeClass('hidden').css('left', '0');
+            $('main').css('margin-left', '250px');
+            $('#sidebar-toggle').css('left', '230px').find('i').removeClass('fa-chevron-left').addClass('fa-chevron-right');
+        }
+    }
+
+    // Initial check
+    updateSidebarToggle();
+
+    // Update on window resize
+    $(window).on('resize', function() {
+        updateSidebarToggle();
     });
 
     // Logout functionality
