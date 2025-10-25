@@ -49,7 +49,7 @@ async function updateData(table, id, data) {
         let idField = 'id_user';
         if (table === 'Player') idField = 'id_player';
         if (table === 'Place') idField = 'id_place';
-        if (table === 'Data') idField = 'id_data';
+        if (table === 'Data') idField = 'id';
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${idField}=eq.${id}`, {
             method: 'PATCH',
@@ -74,7 +74,7 @@ async function deleteData(table, id) {
         let idField = 'id_user';
         if (table === 'Player') idField = 'id_player';
         if (table === 'Place') idField = 'id_place';
-        if (table === 'Data') idField = 'id_data';
+        if (table === 'Data') idField = 'id';
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${idField}=eq.${id}`, {
             method: 'DELETE',

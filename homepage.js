@@ -563,6 +563,13 @@ async function deletePlayer(id) {
         confirmContent.style.display = 'none';
 
         try {
+            // First, delete related data records
+            const allData = await fetchData('Data');
+            const relatedData = allData.filter(d => d.id_player === id);
+            for (const data of relatedData) {
+                await deleteData('Data', data.id);
+            }
+
             const result = await deleteData('Player', id);
             if (result) {
                 console.log('Player deleted successfully');
@@ -811,6 +818,13 @@ async function deletePlace(id) {
         confirmContent.style.display = 'none';
 
         try {
+            // First, delete related data records
+            const allData = await fetchData('Data');
+            const relatedData = allData.filter(d => d.id_place === id);
+            for (const data of relatedData) {
+                await deleteData('Data', data.id);
+            }
+
             const result = await deleteData('Place', id);
             if (result) {
                 console.log('Place deleted successfully');
