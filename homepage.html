@@ -15,7 +15,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
+            <nav id="sidebar" class="col-md-3 col-lg-2 bg-dark sidebar collapse show">
                 <div class="position-sticky">
                     <h5 class="text-white text-center py-3">Uno Win Rate Calculator</h5>
                     <ul class="nav flex-column">
@@ -46,6 +46,13 @@
                         </li>
                     </ul>
                 </div>
+                <!-- Sidebar Toggle Buttons for Mobile -->
+                <button class="btn btn-outline-primary sidebar-toggle-btn" type="button" id="sidebar-open">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-outline-primary sidebar-toggle-btn" type="button" id="sidebar-close" style="display: none;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </nav>
 
             <!-- Main content -->

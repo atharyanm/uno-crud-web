@@ -22,6 +22,24 @@ $(document).ready(function() {
 
         // Load page content
         loadPage(page);
+
+        // Close sidebar on mobile after navigation
+        if ($(window).width() < 768) {
+            $('#sidebar').collapse('hide');
+        }
+    });
+
+    // Sidebar toggle for mobile
+    $('#sidebar-open').on('click', function() {
+        $('#sidebar').collapse('show');
+        $('#sidebar-open').hide();
+        $('#sidebar-close').show();
+    });
+
+    $('#sidebar-close').on('click', function() {
+        $('#sidebar').collapse('hide');
+        $('#sidebar-close').hide();
+        $('#sidebar-open').show();
     });
 
     // Logout functionality
