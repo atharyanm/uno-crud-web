@@ -1,0 +1,110 @@
+Database Documentation
+
+Sistem Manajemen Data Pemain dan Tempat
+
+Deskripsi Umum
+
+Database ini digunakan untuk menyimpan dan mengelola data pemain, tempat pertandingan, serta hasil aktivitas atau catatan yang terjadi di antara keduanya.
+Selain itu, sistem juga mendukung autentikasi pengguna melalui tabel User.
+
+Struktur Tabel
+1. Tabel: User
+
+Menyimpan informasi akun pengguna sistem.
+
+id_user: text — Primary key, identitas unik pengguna.
+
+username: text — Nama pengguna untuk login.
+
+password: text — Kata sandi pengguna (sebaiknya disimpan dalam bentuk hash).
+
+role: text — Peran pengguna seperti admin atau user.
+
+Fungsi:
+Digunakan untuk autentikasi dan otorisasi pengguna yang mengakses sistem.
+
+2. Tabel: Place
+
+Menyimpan data lokasi atau tempat pertandingan.
+
+id_place: text — Primary key, identitas unik tempat.
+
+name: text — Nama tempat.
+
+date: date — Tanggal pencatatan data tempat.
+
+Constraint tambahan:
+Kombinasi (id_place, name) memiliki UNIQUE constraint agar bisa direferensikan dari tabel Data.
+
+Fungsi:
+Menyediakan daftar tempat yang digunakan dalam pertandingan atau kegiatan pemain.
+
+3. Tabel: Player
+
+Menyimpan data pemain.
+
+id_player: text — Primary key, identitas unik pemain.
+
+name: text — Nama pemain.
+
+date_join: date — Tanggal bergabung atau mulai aktif.
+
+Constraint tambahan:
+Kombinasi (id_player, name) memiliki UNIQUE constraint agar bisa direferensikan dari tabel Data.
+
+Fungsi:
+Menyimpan data profil setiap pemain yang terlibat dalam kegiatan atau pertandingan.
+
+4. Tabel: Data
+
+Tabel utama yang menyimpan hasil atau catatan aktivitas antara pemain dan tempat.
+
+id: int4 — Primary key, ID unik setiap data.
+
+name_player: text — Nama pemain, berelasi ke kolom name pada tabel Player.
+
+name_place: text — Nama tempat, berelasi ke kolom name pada tabel Place.
+
+lose: int4 — Jumlah kekalahan pemain (atau nilai lain sesuai konteks data).
+
+date: date — Tanggal data dicatat.
+
+id_place: varchar — Foreign key ke kolom id_place pada tabel Place.
+
+id_player: varchar — Foreign key ke kolom id_player pada tabel Player.
+
+Relasi Foreign Key:
+
+(id_place, name_place) → Place(id_place, name)
+
+(id_player, name_player) → Player(id_player, name)
+
+Fungsi:
+Menyimpan catatan performa, hasil, atau data aktivitas pemain pada suatu tempat tertentu.
+
+Hubungan Antar Tabel
+
+Relasi:
+
+Data → Place: Many-to-One (setiap data terhubung dengan satu tempat tertentu).
+
+Data → Player: Many-to-One (setiap data terhubung dengan satu pemain tertentu).
+
+User: Independen, tidak memiliki relasi langsung dengan tabel lain dan digunakan untuk login serta manajemen pengguna.
+
+Diagram Relasi (ERD)
+
+User (id_user) ───┐
+│
+Place (id_place, name) ─┬─< Data (id, id_place, name_place, id_player, name_player, lose, date)
+Player (id_player, name) ┘
+
+Catatan Pengembangan
+
+Gunakan huruf kecil untuk nama tabel dan kolom guna menghindari masalah case-sensitive di PostgreSQL.
+
+Setiap foreign key harus mengarah ke kolom dengan PRIMARY KEY atau UNIQUE constraint.
+
+Tambahkan indeks (INDEX) pada kolom id_place dan id_player di tabel Data untuk meningkatkan performa query.
+
+Pastikan data password di tabel User disimpan dalam bentuk hash untuk keamanan.

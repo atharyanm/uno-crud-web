@@ -1,0 +1,119 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-users me-2"></i>Players</h2>
+                <button id="add-player-btn" class="btn btn-primary btn-sm rounded-pill"><i class="fas fa-plus"></i> TAMBAH PLAYER</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped" id="players-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                            <th><i class="fas fa-user me-1"></i>Name</th>
+                            <th><i class="fas fa-calendar me-1"></i>Date Joined</th>
+                            <th><i class="fas fa-chart-line me-1"></i>Win Rate</th>
+                            <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Pagination -->
+    <nav aria-label="Player pagination" class="mt-4">
+        <ul class="pagination justify-content-center" id="player-pagination">
+            <!-- Pagination will be generated here -->
+        </ul>
+    </nav>
+</div>
+
+<!-- Modal for adding player -->
+<div class="modal fade" id="player-modal" tabindex="-1" aria-labelledby="playerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="playerModalLabel">Add New Player</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="player-loading" class="text-center d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang menambahkan player...</p>
+                </div>
+                <form id="player-form">
+                    <div class="mb-3">
+                        <label for="player-name" class="form-label">Player Name</label>
+                        <input type="text" class="form-control" id="player-name" placeholder="Player Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="player-date-join" class="form-label">Date Joined</label>
+                        <input type="date" class="form-control" id="player-date-join" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill"><i class="fas fa-plus"></i> TAMBAH PLAYER</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for editing player -->
+<div class="modal fade" id="edit-player-modal" tabindex="-1" aria-labelledby="editPlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlayerModalLabel">Edit Player</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="edit-player-loading" class="text-center d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang mengupdate player...</p>
+                </div>
+                <form id="edit-player-form">
+                    <div class="mb-3">
+                        <label for="edit-player-name" class="form-label">Player Name</label>
+                        <input type="text" class="form-control" id="edit-player-name" placeholder="Player Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-player-date-join" class="form-label">Date Joined</label>
+                        <input type="date" class="form-control" id="edit-player-date-join" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill"><i class="fas fa-save"></i> UPDATE PLAYER</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for delete confirmation -->
+<div class="modal fade" id="delete-player-modal" tabindex="-1" aria-labelledby="deletePlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePlayerModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="delete-player-loading" class="text-center d-none">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang menghapus player...</p>
+                </div>
+                <div id="delete-player-confirm-content">
+                    <p>Are you sure you want to delete this player?</p>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button id="cancel-delete-player-btn" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal"><i class="fas fa-times"></i> BATAL</button>
+                        <button id="confirm-delete-player-btn" class="btn btn-danger btn-sm rounded-pill"><i class="fas fa-trash"></i> HAPUS</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

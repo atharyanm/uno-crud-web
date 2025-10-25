@@ -1,0 +1,25 @@
+/* homepage.css */
+#win-rate-summary {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+#win-rate-summary h3 {
+    margin-top: 0;
+}
+
+#overall-win-rate {
+    font-size: 24px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+#recent-games {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
