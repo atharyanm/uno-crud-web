@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '../index.html';
     });
 
-    // Load win rate summary
-    await loadWinRateSummary();
+    // Load best player
+    await loadBestPlayer();
 
     // Load recent games
     await loadRecentGames();
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Winrate added successfully');
                 document.getElementById('add-winrate-form').reset();
                 addWinrateModal.hide();
-                await loadWinRateSummary();
+                await loadBestPlayer();
                 await loadRecentGames();
             } else {
                 console.error('Failed to add winrate');
@@ -83,20 +83,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-async function loadWinRateSummary() {
+async function loadBestPlayer() {
     try {
         const data = await fetchData('Data');
         const players = await fetchData('Player');
 
-        let totalGames = data.length;
-        let totalLosses = data.filter(d => d.lose === '1' || d.lose === 1).length;
-        let totalWins = totalGames - totalLosses;
-        let winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 0;
+        // Calculate win rates for each player
+        const playerStats = {};
+        players.forEach(player => {
+            playerStats[player.id_player] = { name: player.name, wins: 0, total: 0 };
+        });
 
-        document.getElementById('overall-win-rate').textContent = `${winRate}% (${totalWins} wins out of ${totalGames} games)`;
+        data.forEach(game => {
+            if (playerStats[game.id_player]) {
+                playerStats[game.id_player].total++;
+                if (game.lose === '0' || game.lose === 0) {
+                    playerStats[game.id_player].wins++;
+                }
+            }
+        });
+
+        // Find the player with the highest win rate
+        let bestPlayer = null;
+        let highestWinRate = -1;
+        Object.values(playerStats).forEach(stat => {
+            if (stat.total > 0) {
+                const winRate = stat.wins / stat.total;
+                if (winRate > highestWinRate) {
+                    highestWinRate = winRate;
+                    bestPlayer = stat;
+                }
+            }
+        });
+
+        if (bestPlayer) {
+            const winRatePercent = (highestWinRate * 100).toFixed(2);
+            document.getElementById('best-player').textContent = `${bestPlayer.name} - ${winRatePercent}% (${bestPlayer.wins} wins out of ${bestPlayer.total} games)`;
+        } else {
+            document.getElementById('best-player').textContent = 'No data available';
+        }
     } catch (error) {
-        console.error('Error loading win rate summary:', error);
-        document.getElementById('overall-win-rate').textContent = 'Error loading data';
+        console.error('Error loading best player:', error);
+        document.getElementById('best-player').textContent = 'Error loading data';
     }
 }
 

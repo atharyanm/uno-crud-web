@@ -168,16 +168,11 @@ function loadPage(page) {
 
 async function loadDashboardContent() {
     try {
-        // Load win rate summary
-        const data = await fetchData('Data');
-        let totalGames = data.length;
-        let totalLosses = data.filter(d => d.lose === '1' || d.lose === 1).length;
-        let totalWins = totalGames - totalLosses;
-        let winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 0;
-
-        $('#overall-win-rate').text(`${winRate}% (${totalWins} wins out of ${totalGames} games)`);
+        // Load best player
+        await loadBestPlayer();
 
         // Load recent games
+        const data = await fetchData('Data');
         const players = await fetchData('Player');
         const places = await fetchData('Place');
         const recentGames = data.slice(-10).reverse();
@@ -265,6 +260,45 @@ async function loadDashboardContent() {
     } catch (error) {
         console.error('Error loading dashboard:', error);
         $('#overall-win-rate').text('Error loading data');
+    }
+}
+
+async function loadBestPlayer() {
+    try {
+        const players = await fetchData('Player');
+        const data = await fetchData('Data');
+
+        if (players.length === 0) {
+            $('#best-player').text('No players available');
+            return;
+        }
+
+        let bestPlayer = null;
+        let bestWinRate = -1;
+
+        players.forEach(player => {
+            const playerGames = data.filter(d => d.id_player === player.id_player);
+            const totalGames = playerGames.length;
+            if (totalGames > 0) {
+                const losses = playerGames.filter(d => d.lose === '1' || d.lose === 1).length;
+                const wins = totalGames - losses;
+                const winRate = (wins / totalGames) * 100;
+
+                if (winRate > bestWinRate) {
+                    bestWinRate = winRate;
+                    bestPlayer = player;
+                }
+            }
+        });
+
+        if (bestPlayer) {
+            $('#best-player').text(`${bestPlayer.name} (${bestWinRate.toFixed(2)}% win rate)`);
+        } else {
+            $('#best-player').text('No games played yet');
+        }
+    } catch (error) {
+        console.error('Error loading best player:', error);
+        $('#best-player').text('Error loading best player');
     }
 }
 
