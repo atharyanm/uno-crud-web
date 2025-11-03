@@ -14,7 +14,8 @@ body {
     height: 100vh;
     z-index: 1000;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    transition: width 0.3s ease;
+    transition: all 0.3s ease;
+    overflow-y: auto;
 }
 
 .sidebar.hidden {
@@ -235,15 +236,15 @@ main.main-hidden {
 /* Tablet and larger screens */
 @media (max-width: 1024px) {
     .sidebar {
-        width: 220px;
+        width: 180px;
     }
 
     main {
-        margin-left: 220px;
+        margin-left: 180px;
     }
 
     .sidebar-toggle-btn {
-        left: 200px;
+        left: 160px;
     }
 }
 
