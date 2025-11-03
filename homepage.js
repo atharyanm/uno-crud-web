@@ -171,6 +171,9 @@ async function loadDashboardContent() {
         // Load best player
         await loadBestPlayer();
 
+        // Load worst player
+        await loadWorstPlayer();
+
         // Load recent games
         const data = await fetchData('Data');
         const players = await fetchData('Player');
@@ -299,6 +302,45 @@ async function loadBestPlayer() {
     } catch (error) {
         console.error('Error loading best player:', error);
         $('#best-player').text('Error loading best player');
+    }
+}
+
+async function loadWorstPlayer() {
+    try {
+        const players = await fetchData('Player');
+        const data = await fetchData('Data');
+
+        if (players.length === 0) {
+            $('#worst-player').text('No players available');
+            return;
+        }
+
+        let worstPlayer = null;
+        let worstWinRate = 101;
+
+        players.forEach(player => {
+            const playerGames = data.filter(d => d.id_player === player.id_player);
+            const totalGames = playerGames.length;
+            if (totalGames > 0) {
+                const losses = playerGames.filter(d => d.lose === '1' || d.lose === 1).length;
+                const wins = totalGames - losses;
+                const winRate = (wins / totalGames) * 100;
+
+                if (winRate < worstWinRate) {
+                    worstWinRate = winRate;
+                    worstPlayer = player;
+                }
+            }
+        });
+
+        if (worstPlayer) {
+            $('#worst-player').text(`${worstPlayer.name} (${worstWinRate.toFixed(2)}% win rate)`);
+        } else {
+            $('#worst-player').text('No games played yet');
+        }
+    } catch (error) {
+        console.error('Error loading worst player:', error);
+        $('#worst-player').text('Error loading worst player');
     }
 }
 
