@@ -23,3 +23,42 @@
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
+
+/* Responsive adjustments for homepage */
+@media (max-width: 768px) {
+    #win-rate-summary, #recent-games {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    #win-rate-summary h3 {
+        font-size: 1.25rem;
+    }
+
+    #overall-win-rate {
+        font-size: 20px;
+    }
+
+    #recent-games h3 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #win-rate-summary, #recent-games {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    #win-rate-summary h3 {
+        font-size: 1.1rem;
+    }
+
+    #overall-win-rate {
+        font-size: 18px;
+    }
+
+    #recent-games h3 {
+        font-size: 1.1rem;
+    }
+}

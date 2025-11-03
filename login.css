@@ -41,3 +41,43 @@
     margin-top: 10px;
     text-align: center;
 }
+
+/* Responsive adjustments for login page */
+@media (max-width: 768px) {
+    #login-container {
+        max-width: 90%;
+        margin: 50px auto;
+        padding: 15px;
+    }
+
+    #login-container h2 {
+        font-size: 1.5rem;
+    }
+
+    #login-form input {
+        padding: 12px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    #login-form button {
+        padding: 12px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    #login-container {
+        max-width: 95%;
+        margin: 20px auto;
+        padding: 10px;
+    }
+
+    #login-container h2 {
+        font-size: 1.25rem;
+    }
+
+    #login-form input, #login-form button {
+        padding: 10px;
+        font-size: 16px;
+    }
+}
