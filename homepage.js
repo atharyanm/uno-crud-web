@@ -35,20 +35,21 @@ $(document).ready(function() {
         const sidebar = $('#sidebar');
         const main = $('main');
         const icon = $(this).find('i');
+        const windowWidth = $(window).width();
 
-        if ($(window).width() >= 768) {
-            // Desktop behavior: hide/show sidebar
+        if (windowWidth >= 768) {
+            // Desktop/Tablet behavior: hide/show sidebar with content shift
             if (sidebar.hasClass('hidden')) {
                 // Show sidebar
                 sidebar.removeClass('hidden');
                 main.removeClass('main-hidden');
-                $(this).css('left', '230px');
+                updateToggleButtonPosition(windowWidth, false);
                 icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
             } else {
                 // Hide sidebar
                 sidebar.addClass('hidden');
                 main.addClass('main-hidden');
-                $(this).css('left', '10px');
+                updateToggleButtonPosition(windowWidth, true);
                 icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
             }
         } else {
@@ -65,40 +66,61 @@ $(document).ready(function() {
         }
     });
 
-    // Handle responsive sidebar behavior
-    function updateSidebarToggle() {
-        const windowWidth = $(window).width();
-        const sidebar = $('#sidebar');
+    // Function to update toggle button position based on sidebar state
+    function updateToggleButtonPosition(windowWidth, isHidden) {
         const toggleBtn = $('#sidebar-toggle');
         const icon = toggleBtn.find('i');
 
         if (windowWidth < 768) {
-            // Mobile: sidebar is hidden by default, positioned off-screen
-            sidebar.removeClass('show').addClass('hidden');
+            // Mobile: always at 10px
             toggleBtn.css({
                 'left': '10px',
                 'top': '15px',
                 'transform': 'translateY(0)'
             });
             icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
+        } else {
+            // Desktop/Tablet: position based on sidebar width
+            if (isHidden) {
+                toggleBtn.css({
+                    'left': '10px',
+                    'top': '50%',
+                    'transform': 'translateY(-50%)'
+                });
+                icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
+            } else {
+                const sidebarWidth = windowWidth < 1024 ? 180 : 250;
+                toggleBtn.css({
+                    'left': (sidebarWidth - 20) + 'px',
+                    'top': '50%',
+                    'transform': 'translateY(-50%)'
+                });
+                icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+            }
+        }
+    }
+
+    // Handle responsive sidebar behavior
+    function updateSidebarToggle() {
+        const windowWidth = $(window).width();
+        const sidebar = $('#sidebar');
+        const main = $('main');
+
+        if (windowWidth < 768) {
+            // Mobile: sidebar is hidden by default, positioned off-screen
+            sidebar.removeClass('show').addClass('hidden');
+            main.removeClass('main-hidden');
+            updateToggleButtonPosition(windowWidth, true);
         } else if (windowWidth < 1024) {
             // Tablet: adjust sidebar width and toggle position
             sidebar.removeClass('hidden').addClass('show');
-            toggleBtn.css({
-                'left': '200px',
-                'top': '50%',
-                'transform': 'translateY(-50%)'
-            });
-            icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+            main.removeClass('main-hidden');
+            updateToggleButtonPosition(windowWidth, false);
         } else {
             // Desktop: sidebar is shown by default
             sidebar.removeClass('hidden').addClass('show');
-            toggleBtn.css({
-                'left': '230px',
-                'top': '50%',
-                'transform': 'translateY(-50%)'
-            });
-            icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+            main.removeClass('main-hidden');
+            updateToggleButtonPosition(windowWidth, false);
         }
     }
 
