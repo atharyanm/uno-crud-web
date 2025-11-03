@@ -60,7 +60,7 @@ $(document).ready(function() {
                 icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
             } else {
                 // Show sidebar
-                sidebar.addClass('show');
+                sidebar.removeClass('hidden').addClass('show');
                 icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
             }
         }
@@ -107,8 +107,8 @@ $(document).ready(function() {
         const main = $('main');
 
         if (windowWidth < 768) {
-            // Mobile: sidebar is hidden by default, positioned off-screen
-            sidebar.removeClass('show').addClass('hidden');
+            // Mobile: sidebar is hidden by default (overlay mode, no 'hidden' class used)
+            sidebar.removeClass('show');
             main.removeClass('main-hidden');
             updateToggleButtonPosition(windowWidth, true);
         } else if (windowWidth < 1024) {
