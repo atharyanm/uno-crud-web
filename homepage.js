@@ -1,6 +1,8 @@
 // homepage.js - Homepage with dynamic page loading
 let currentPage = 'dashboard';
 let winrateFormInitialized = false;
+let currentRecentGamesPage = 1;
+const recentGamesPerPage = 10;
 
 function checkSession() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -205,49 +207,8 @@ async function loadDashboardContent() {
         // Load worst player
         await loadWorstPlayer();
 
-        // Load recent games
-        const data = await fetchData('Data');
-        const players = await fetchData('Player');
-        const places = await fetchData('Place');
-        const games = await fetchData('Game');
-        const recentGames = data.slice(-10).reverse();
-
-        const tbody = $('#recent-games-table tbody');
-        tbody.empty();
-
-        recentGames.forEach(game => {
-            const player = players.find(p => p.id_player === game.id_player);
-            const place = places.find(p => p.id_place === game.id_place);
-            const gameName = games.find(g => g.name_game === game.name_game);
-            const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
-
-            // Robust date parsing for formats like "2025-11-05 23:07:00" or "2025-11-05 23:07:00+00"
-            let formattedDate = 'Invalid Date';
-            if (game.date && typeof game.date === 'string') {
-                try {
-                    // Match "YYYY-MM-DD HH:MM:SS" optionally followed by timezone offset
-                    const matches = game.date.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
-                    if (matches) {
-                        const [, year, month, day, hours, minutes, seconds] = matches;
-                        formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
-                    } else {
-                        console.warn('Unrecognized date format:', game.date);
-                    }
-                } catch (error) {
-                    console.error('Error parsing date:', game.date, error);
-                }
-            }
-
-            tbody.append(`
-                <tr>
-                    <td>${formattedDate}</td>
-                    <td>${player ? player.name : 'Unknown'}</td>
-                    <td>${place ? place.name : 'Unknown'}</td>
-                    <td>${gameName ? gameName.name_game : 'Unknown'}</td>
-                    <td>${result}</td>
-                </tr>
-            `);
-        });
+        // Load recent games with pagination
+        await loadRecentGames();
 
         // Setup modal functionality for add winrate
         const addWinrateModal = new bootstrap.Modal(document.getElementById('add-winrate-modal'));
@@ -443,6 +404,126 @@ async function loadWorstPlayer() {
         console.error('Error loading worst player:', error);
         $('#worst-player').text('Error loading worst player');
     }
+}
+
+async function loadRecentGames(page = 1) {
+    console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}`);
+    try {
+        console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${recentGamesPerPage}`);
+        const data = await fetchData('Data');
+        const players = await fetchData('Player');
+        const places = await fetchData('Place');
+        const games = await fetchData('Game');
+
+        // Sort data by date descending (most recent first)
+        const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Calculate pagination
+        const totalGames = sortedData.length;
+        const totalPages = Math.ceil(totalGames / recentGamesPerPage);
+        const startIndex = (page - 1) * recentGamesPerPage;
+        const endIndex = startIndex + recentGamesPerPage;
+        const paginatedGames = sortedData.slice(startIndex, endIndex);
+
+        console.log(`[Pagination] Total games: ${totalGames}, Total pages: ${totalPages}, Current page: ${page}, Showing games ${startIndex + 1}-${Math.min(endIndex, totalGames)}`);
+
+        const tbody = document.querySelector('#recent-games-table tbody');
+        tbody.innerHTML = '';
+
+        paginatedGames.forEach(game => {
+            const player = players.find(p => p.id_player === game.id_player);
+            const place = places.find(p => p.id_place === game.id_place);
+            const gameType = games.find(g => g.name_game === game.name_game);
+            const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
+
+            // Convert WIB date to local timezone
+            let formattedDate = 'Unknown';
+            if (game.date) {
+                try {
+                    // Use regex to extract date and time, ignoring timezone offset if present
+                    const dateMatch = game.date.match(/(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})/);
+                    if (!dateMatch) {
+                        console.warn('Invalid date format for game:', game.date);
+                        formattedDate = 'Invalid Date';
+                    } else {
+                        const dateStr = dateMatch[1]; // YYYY-MM-DD
+                        const timeStr = dateMatch[2]; // HH:MM:SS
+
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        const [hour, minute, second] = timeStr.split(':').map(Number);
+
+                        // Display the database time as-is, without timezone conversion
+                        formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}, ${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}.${String(second).padStart(2, '0')}`;
+                    }
+                } catch (error) {
+                    console.error('Error parsing date for game:', game, error);
+                    formattedDate = 'Invalid Date';
+                }
+            }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${formattedDate}</td>
+                <td>${player ? player.name : 'Unknown'}</td>
+                <td>${place ? place.name : 'Unknown'}</td>
+                <td>${gameType ? gameType.name_game : 'Unknown'}</td>
+                <td>${result}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Render pagination
+        renderRecentGamesPagination(totalPages, page);
+        console.log(`[Pagination] Successfully rendered ${paginatedGames.length} games for page ${page}`);
+    } catch (error) {
+        console.error('[Pagination] Error loading recent games:', error);
+    }
+}
+
+function renderRecentGamesPagination(totalPages, currentPage) {
+    console.log(`[PAGINATION DEBUG] renderRecentGamesPagination called with totalPages=${totalPages}, currentPage=${currentPage}`);
+    const paginationContainer = document.getElementById('recent-games-pagination');
+    if (!paginationContainer) {
+        console.error('[Pagination] Pagination container not found!');
+        return;
+    }
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 0) {
+        console.log('[Pagination] No pagination needed - no pages to display');
+        return;
+    }
+
+    console.log(`[Pagination] Rendering pagination - Total pages: ${totalPages}, Current page: ${currentPage}`);
+
+    // Previous button
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage - 1})">Previous</a>`;
+    paginationContainer.appendChild(prevLi);
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${i})">${i}</a>`;
+        paginationContainer.appendChild(pageLi);
+    }
+
+    // Next button
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage + 1})">Next</a>`;
+    paginationContainer.appendChild(nextLi);
+
+    console.log('[Pagination] Pagination rendered successfully');
+}
+
+function changeRecentGamesPage(page) {
+    console.log(`[PAGINATION DEBUG] changeRecentGamesPage called with page=${page}`);
+    console.log(`[Pagination] Changing to page ${page}`);
+    currentRecentGamesPage = page;
+    loadRecentGames(page);
 }
 
 async function loadPlayersAndPlaces() {

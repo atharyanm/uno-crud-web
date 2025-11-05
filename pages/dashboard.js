@@ -152,24 +152,35 @@ async function loadBestPlayer() {
     }
 }
 
-async function loadRecentGames() {
+async function loadRecentGames(page = 1, limit = 10) {
+    console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}`);
     try {
+        console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}`);
         const data = await fetchData('Data');
         const players = await fetchData('Player');
         const places = await fetchData('Place');
 
-        const recentGames = data.slice(-10).reverse(); // Last 10 games, most recent first
+        // Sort data by date descending (most recent first)
+        const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Calculate pagination
+        const totalGames = sortedData.length;
+        const totalPages = Math.ceil(totalGames / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedGames = sortedData.slice(startIndex, endIndex);
+
+        console.log(`[Pagination] Total games: ${totalGames}, Total pages: ${totalPages}, Current page: ${page}, Showing games ${startIndex + 1}-${Math.min(endIndex, totalGames)}`);
 
         const tbody = document.querySelector('#recent-games-table tbody');
         tbody.innerHTML = '';
 
-        recentGames.forEach(game => {
+        paginatedGames.forEach(game => {
             const player = players.find(p => p.id_player === game.id_player);
             const place = places.find(p => p.id_place === game.id_place);
             const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
 
-            // Convert WIB date to local timezone
-            // Parse date manually since it's in "YYYY-MM-DD HH:MM:SS" format
+            // Display the database time as-is, without timezone conversion
             const dateParts = game.date.split(' ');
             const dateStr = dateParts[0]; // YYYY-MM-DD
             const timeStr = dateParts[1]; // HH:MM:SS
@@ -177,18 +188,7 @@ async function loadRecentGames() {
             const [year, month, day] = dateStr.split('-').map(Number);
             const [hour, minute, second] = timeStr.split(':').map(Number);
 
-            // Create date in WIB timezone (UTC+7)
-            const wibDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-            wibDate.setHours(wibDate.getHours() + 7); // Add 7 hours for WIB
-
-            const formattedDate = wibDate.toLocaleString('id-ID', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
+            const formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}, ${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}.${String(second).padStart(2, '0')}`;
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -199,8 +199,12 @@ async function loadRecentGames() {
             `;
             tbody.appendChild(row);
         });
+
+        // Render pagination
+        renderRecentGamesPagination(totalPages, page);
+        console.log(`[Pagination] Successfully rendered ${paginatedGames.length} games for page ${page}`);
     } catch (error) {
-        console.error('Error loading recent games:', error);
+        console.error('[Pagination] Error loading recent games:', error);
     }
 }
 
@@ -293,4 +297,49 @@ async function loadPlayersAndPlaces() {
     } catch (error) {
         console.error('Error loading players and places:', error);
     }
+}
+
+function renderRecentGamesPagination(totalPages, currentPage) {
+    console.log(`[PAGINATION DEBUG] renderRecentGamesPagination called with totalPages=${totalPages}, currentPage=${currentPage}`);
+    const paginationContainer = document.getElementById('recent-games-pagination');
+    if (!paginationContainer) {
+        console.error('[Pagination] Pagination container not found!');
+        return;
+    }
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 0) {
+        console.log('[Pagination] No pagination needed - no pages to display');
+        return;
+    }
+
+    console.log(`[Pagination] Rendering pagination - Total pages: ${totalPages}, Current page: ${currentPage}`);
+
+    // Previous button
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage - 1})">Previous</a>`;
+    paginationContainer.appendChild(prevLi);
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${i})">${i}</a>`;
+        paginationContainer.appendChild(pageLi);
+    }
+
+    // Next button
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage + 1})">Next</a>`;
+    paginationContainer.appendChild(nextLi);
+
+    console.log('[Pagination] Pagination rendered successfully');
+}
+
+function changeRecentGamesPage(page) {
+    console.log(`[PAGINATION DEBUG] changeRecentGamesPage called with page=${page}`);
+    console.log(`[Pagination] Changing to page ${page}`);
+    loadRecentGames(page);
 }
