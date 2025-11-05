@@ -42,6 +42,7 @@ $(document).ready(function() {
         // Close sidebar on mobile after navigation
         if ($(window).width() < 768) {
             $('#sidebar').collapse('hide');
+            $('main').removeClass('main-shifted');
         }
     });
 
@@ -70,16 +71,18 @@ $(document).ready(function() {
                 $(this).attr('title', 'Open sidebar');
             }
         } else {
-            // Mobile behavior: overlay sidebar
+            // Mobile behavior: overlay sidebar with content shift
             if (sidebar.hasClass('show')) {
                 // Hide sidebar
                 sidebar.removeClass('show').addClass('hidden');
+                main.removeClass('main-shifted');
                 updateToggleButtonPosition(windowWidth, true);
                 icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
                 $(this).attr('title', 'Open sidebar');
             } else {
                 // Show sidebar
                 sidebar.removeClass('hidden').addClass('show');
+                main.addClass('main-shifted');
                 updateToggleButtonPosition(windowWidth, false);
                 icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
                 $(this).attr('title', 'Close sidebar');
@@ -139,7 +142,7 @@ $(document).ready(function() {
         if (windowWidth < 768) {
             // Mobile: sidebar is hidden by default (overlay mode)
             sidebar.removeClass('show d-none');
-            main.removeClass('main-hidden');
+            main.removeClass('main-hidden main-shifted');
             updateToggleButtonPosition(windowWidth, true);
         } else {
             // Desktop/Tablet: sidebar is shown by default

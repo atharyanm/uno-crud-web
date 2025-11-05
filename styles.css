@@ -269,6 +269,11 @@ main.main-hidden {
     main {
         margin-left: 0;
         padding: 15px;
+        transition: margin-left 0.3s ease;
+    }
+
+    main.main-shifted {
+        margin-left: 250px;
     }
 
     .sidebar-toggle-btn {
