@@ -160,6 +160,8 @@ function loadPage(page) {
             loadPlayerContent();
         } else if (page === 'place') {
             loadPlaceContent();
+        } else if (page === 'game') {
+            loadGameContent();
         }
     }).fail(function() {
         $('#page-content').html('<p>Error loading page content.</p>');
@@ -178,6 +180,7 @@ async function loadDashboardContent() {
         const data = await fetchData('Data');
         const players = await fetchData('Player');
         const places = await fetchData('Place');
+        const games = await fetchData('Game');
         const recentGames = data.slice(-10).reverse();
 
         const tbody = $('#recent-games-table tbody');
@@ -186,6 +189,7 @@ async function loadDashboardContent() {
         recentGames.forEach(game => {
             const player = players.find(p => p.id_player === game.id_player);
             const place = places.find(p => p.id_place === game.id_place);
+            const gameName = games.find(g => g.name_game === game.name_game);
             const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
 
             // Robust date parsing for formats like "2025-11-05 23:07:00" or "2025-11-05 23:07:00+00"
@@ -210,6 +214,7 @@ async function loadDashboardContent() {
                     <td>${formattedDate}</td>
                     <td>${player ? player.name : 'Unknown'}</td>
                     <td>${place ? place.name : 'Unknown'}</td>
+                    <td>${gameName ? gameName.name_game : 'Unknown'}</td>
                     <td>${result}</td>
                 </tr>
             `);
@@ -237,6 +242,7 @@ async function loadDashboardContent() {
                     const playerIds = window.selectedPlayers.map(p => p.id_player);
                     const loserId = document.getElementById('winrate-loser').value;
                     const placeId = document.getElementById('winrate-place').value;
+                    const gameId = document.getElementById('winrate-game').value;
                     const datetime = document.getElementById('winrate-datetime').value;
 
                     if (playerIds.length === 0) {
@@ -255,18 +261,28 @@ async function loadDashboardContent() {
                         alert('Please select a place.');
                         return;
                     }
+                    if (!gameId) {
+                        alert('Please select a game.');
+                        return;
+                    }
                     if (!datetime) {
                         alert('Please enter date and time.');
                         return;
                     }
 
-                    // Get player and place details
+                    // Get player, place, and game details
                     const players = await fetchData('Player');
                     const places = await fetchData('Place');
+                    const games = await fetchData('Game');
                     const place = places.find(p => p.id_place === placeId);
+                    const game = games.find(g => g.id_game === gameId);
 
                     if (!place) {
                         alert('Invalid place selected.');
+                        return;
+                    }
+                    if (!game) {
+                        alert('Invalid game selected.');
                         return;
                     }
 
@@ -289,7 +305,8 @@ async function loadDashboardContent() {
                             lose: lose,
                             date: dateStr,
                             id_place: placeId,
-                            id_player: playerId
+                            id_player: playerId,
+                            name_game: game.name_game
                         };
 
                         const result = await insertData('Data', newData);
@@ -403,16 +420,19 @@ async function loadPlayersAndPlaces() {
     try {
         const players = await fetchData('Player');
         const places = await fetchData('Place');
+        const games = await fetchData('Game');
 
         const playerSelect = document.getElementById('winrate-players');
         const loserSelect = document.getElementById('winrate-loser');
         const placeSelect = document.getElementById('winrate-place');
+        const gameSelect = document.getElementById('winrate-game');
         const selectedPlayersDiv = document.getElementById('selected-players');
 
         // Clear existing options
         playerSelect.innerHTML = '<option value="">Select Player</option>';
         loserSelect.innerHTML = '<option value="">Select Loser</option>';
         placeSelect.innerHTML = '<option value="">Select Place</option>';
+        gameSelect.innerHTML = '<option value="">Select Game</option>';
         selectedPlayersDiv.innerHTML = '';
 
         // Populate player options
@@ -429,6 +449,14 @@ async function loadPlayersAndPlaces() {
             option.value = place.id_place;
             option.textContent = place.name;
             placeSelect.appendChild(option);
+        });
+
+        // Populate game options
+        games.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.id_game;
+            option.textContent = game.name_game;
+            gameSelect.appendChild(option);
         });
 
         // Set default datetime to now
@@ -486,7 +514,7 @@ async function loadPlayersAndPlaces() {
         // Store selected players for form submission
         window.selectedPlayers = selectedPlayers;
     } catch (error) {
-        console.error('Error loading players and places:', error);
+        console.error('Error loading players, places, and games:', error);
     }
 }
 
@@ -1024,8 +1052,68 @@ async function loadPlaceContent() {
     window.deletePlace = deletePlace;
 }
 
+async function loadGameContent() {
+    console.log('Loading game content');
+    // Load games
+    await loadGames();
+
+    // Modal functionality using Bootstrap
+    const modal = new bootstrap.Modal(document.getElementById('game-modal'));
+    document.getElementById('add-game-btn').addEventListener('click', () => {
+        modal.show();
+    });
+
+    // Add game form
+    document.getElementById('game-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = document.getElementById('game-form');
+        const loadingDiv = document.getElementById('game-loading');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // Show loading
+        loadingDiv.classList.remove('d-none');
+        form.style.display = 'none';
+        submitBtn.disabled = true;
+
+        try {
+            const nameGame = document.getElementById('game-name').value;
+            const date = document.getElementById('game-date').value;
+            const idGame = await generateSequentialId('Game', 'GAM_');
+            console.log(`Adding new game: ${nameGame}, ID: ${idGame}, Date: ${date}`);
+
+            const newGame = { id_game: idGame, name_game: nameGame, added: date };
+            const result = await insertData('Game', newGame);
+            if (result) {
+                console.log('Game added successfully');
+                document.getElementById('game-name').value = '';
+                document.getElementById('game-date').value = '';
+                modal.hide();
+                await loadGames();
+            } else {
+                console.error('Failed to add game');
+                alert('Failed to add game. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error adding game:', error);
+            alert('Error adding game. Please try again.');
+        } finally {
+            // Hide loading
+            loadingDiv.classList.add('d-none');
+            form.style.display = 'block';
+            submitBtn.disabled = false;
+        }
+    });
+
+    // Attach edit and delete functions globally
+    window.editGame = editGame;
+    window.deleteGame = deleteGame;
+}
+
 let currentPlacePage = 1;
 const placesPerPage = 10;
+
+let currentGamePage = 1;
+const gamesPerPage = 10;
 
 async function loadPlaces(page = 1) {
     try {
@@ -1061,6 +1149,43 @@ async function loadPlaces(page = 1) {
         renderPlacePagination(totalPages, page);
     } catch (error) {
         console.error('Error loading places:', error);
+    }
+}
+
+async function loadGames(page = 1) {
+    try {
+        const games = await fetchData('Game');
+
+        // Calculate pagination
+        const totalGames = games.length;
+        const totalPages = Math.ceil(totalGames / gamesPerPage);
+        const startIndex = (page - 1) * gamesPerPage;
+        const endIndex = startIndex + gamesPerPage;
+        const gamesToShow = games.slice(startIndex, endIndex);
+
+        const tbody = document.querySelector('#games-table tbody');
+        tbody.innerHTML = '';
+
+        gamesToShow.forEach(game => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${game.id_game}</td>
+                <td>${game.name_game}</td>
+                <td>${game.added}</td>
+                <td>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button class="btn btn-primary btn-sm rounded-pill edit-btn" onclick="editGame('${game.id_game}')"><i class="fas fa-edit"></i> UBAH</button>
+                        <button class="btn btn-danger btn-sm rounded-pill delete-btn" onclick="deleteGame('${game.id_game}')"><i class="fas fa-trash"></i> HAPUS</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Generate pagination
+        renderGamePagination(totalPages, page);
+    } catch (error) {
+        console.error('Error loading games:', error);
     }
 }
 
@@ -1177,6 +1302,129 @@ async function editPlace(id) {
             } catch (error) {
                 console.error('Error updating place:', error);
                 alert('Error updating place. Please try again.');
+            } finally {
+                // Hide loading
+                loadingDiv.classList.add('d-none');
+                form.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+        };
+    }
+}
+
+function renderGamePagination(totalPages, currentPage) {
+    const paginationContainer = document.getElementById('game-pagination');
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // Previous button
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeGamePage(${currentPage - 1})">Previous</a>`;
+    paginationContainer.appendChild(prevLi);
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `<a class="page-link" href="#" onclick="changeGamePage(${i})">${i}</a>`;
+        paginationContainer.appendChild(pageLi);
+    }
+
+    // Next button
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" onclick="changeGamePage(${currentPage + 1})">Next</a>`;
+    paginationContainer.appendChild(nextLi);
+}
+
+function changeGamePage(page) {
+    currentGamePage = page;
+    loadGames(page);
+}
+
+async function deleteGame(id) {
+    console.log(`Deleting game with ID: ${id}`);
+    // Open delete confirmation modal using Bootstrap
+    const deleteModal = new bootstrap.Modal(document.getElementById('delete-game-modal'));
+    deleteModal.show();
+
+    // Handle confirm delete
+    document.getElementById('confirm-delete-game-btn').onclick = async () => {
+        const loadingDiv = document.getElementById('delete-game-loading');
+        const confirmContent = document.getElementById('delete-game-confirm-content');
+
+        // Show loading
+        loadingDiv.classList.remove('d-none');
+        confirmContent.style.display = 'none';
+
+        try {
+            // First, delete related data records
+            const allData = await fetchData('Data');
+            const relatedData = allData.filter(d => d.id_game === id);
+            for (const data of relatedData) {
+                await deleteData('Data', data.id);
+            }
+
+            const result = await deleteData('Game', id);
+            if (result) {
+                console.log('Game deleted successfully');
+                deleteModal.hide();
+                await loadGames();
+            } else {
+                console.error('Failed to delete game');
+                alert('Failed to delete game. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            alert('Error deleting game. Please try again.');
+        } finally {
+            // Hide loading
+            loadingDiv.classList.add('d-none');
+            confirmContent.style.display = 'block';
+        }
+    };
+}
+
+async function editGame(id) {
+    console.log(`Editing game with ID: ${id}`);
+    // Open edit modal and populate fields using Bootstrap
+    const editModal = new bootstrap.Modal(document.getElementById('edit-game-modal'));
+    const games = await fetchData('Game');
+    const game = games.find(g => g.id_game === id);
+    if (game) {
+        document.getElementById('edit-game-name').value = game.name_game;
+        document.getElementById('edit-game-date').value = game.added;
+        editModal.show();
+
+        // Handle edit form submission
+        document.getElementById('edit-game-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const form = document.getElementById('edit-game-form');
+            const loadingDiv = document.getElementById('edit-game-loading');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            // Show loading
+            loadingDiv.classList.remove('d-none');
+            form.style.display = 'none';
+            submitBtn.disabled = true;
+
+            try {
+                const newName = document.getElementById('edit-game-name').value;
+                const newDate = document.getElementById('edit-game-date').value;
+                const result = await updateData('Game', id, { name_game: newName, added: newDate });
+                if (result) {
+                    console.log('Game updated successfully');
+                    editModal.hide();
+                    await loadGames();
+                } else {
+                    console.error('Failed to update game');
+                    alert('Failed to update game. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error updating game:', error);
+                alert('Error updating game. Please try again.');
             } finally {
                 // Hide loading
                 loadingDiv.classList.add('d-none');

@@ -1,6 +1,6 @@
 // koneksi.js - API connection to Supabase
 const SUPABASE_URL = 'https://vbgiivtovglbddxkfmhv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZ2lpdnRvdmdsYmRkeGtmbWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMDk5NTMsImV4cCI6MjA3Njg4NTk1M30.gGec6L5_iw0lleSypJSHIA_bojvNWtB0kF61mmxyrmQ';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZ2lpdnRvdmdsYmRkeGtmbWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNjM3ODgsImV4cCI6MjA3NzcyMzc4OH0.pCLOjFEywBj8BU0-9F1JcQ4ro3jccz38oRYy1GTAMOU';
 
 async function fetchData(table) {
     try {
@@ -55,6 +55,7 @@ async function updateData(table, id, data) {
         let idField = 'id_user';
         if (table === 'Player') idField = 'id_player';
         if (table === 'Place') idField = 'id_place';
+        if (table === 'Game') idField = 'id_game';
         if (table === 'Data') idField = 'id';
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${idField}=eq.${id}`, {
@@ -80,6 +81,7 @@ async function deleteData(table, id) {
         let idField = 'id_user';
         if (table === 'Player') idField = 'id_player';
         if (table === 'Place') idField = 'id_place';
+        if (table === 'Game') idField = 'id_game';
         if (table === 'Data') idField = 'id';
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${idField}=eq.${id}`, {

@@ -73,6 +73,15 @@ id_place: varchar — Foreign key ke kolom id_place pada tabel Place.
 
 id_player: varchar — Foreign key ke kolom id_player pada tabel Player.
 
+name_game : varchar - nama game berelasi foreign key cascade ke kolom name_game tabel Game
+
+5. Tabel: Game
+Menyimpan data daftar game
+id_game : varchar - primary key
+name_game : varchar - nama game berelasi foreign key cascade ke kolom name_game tabel Data
+added : date - waktu ditambahkan gamenya 
+
+
 Relasi Foreign Key:
 
 (id_place, name_place) → Place(id_place, name)
