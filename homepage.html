@@ -103,9 +103,16 @@
                 <div class="modal-body">
                     <form id="add-winrate-form">
                         <div class="mb-3">
-                            <label for="winrate-player" class="form-label">Player</label>
-                            <select class="form-select" id="winrate-player" required>
+                            <label for="winrate-players" class="form-label">Players</label>
+                            <select class="form-select" id="winrate-players">
                                 <option value="">Select Player</option>
+                            </select>
+                            <div id="selected-players" class="mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="winrate-loser" class="form-label">Loser</label>
+                            <select class="form-select" id="winrate-loser" required>
+                                <option value="">Select Loser</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -115,23 +122,8 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Result</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="winrate-result" id="winrate-win" value="0" required>
-                                <label class="form-check-label" for="winrate-win">
-                                    Win
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="winrate-result" id="winrate-lose" value="1" required>
-                                <label class="form-check-label" for="winrate-lose">
-                                    Lose
-                                </label>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="winrate-date" class="form-label">Date</label>
-                            <input type="date" class="form-control" id="winrate-date" required>
+                            <label for="winrate-datetime" class="form-label">Date & Time (WIB)</label>
+                            <input type="datetime-local" class="form-control" id="winrate-datetime" required>
                         </div>
                     </form>
                 </div>

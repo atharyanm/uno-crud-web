@@ -67,7 +67,7 @@ name_place: text — Nama tempat, berelasi ke kolom name pada tabel Place.
 
 lose: int4 — Jumlah kekalahan pemain (atau nilai lain sesuai konteks data).
 
-date: date — Tanggal data dicatat.
+date: timestampz — waktu data dicatat (gunakan waktu WIB indonesia).
 
 id_place: varchar — Foreign key ke kolom id_place pada tabel Place.
 

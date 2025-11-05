@@ -188,9 +188,26 @@ async function loadDashboardContent() {
             const place = places.find(p => p.id_place === game.id_place);
             const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
 
+            // Robust date parsing for formats like "2025-11-05 23:07:00" or "2025-11-05 23:07:00+00"
+            let formattedDate = 'Invalid Date';
+            if (game.date && typeof game.date === 'string') {
+                try {
+                    // Match "YYYY-MM-DD HH:MM:SS" optionally followed by timezone offset
+                    const matches = game.date.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+                    if (matches) {
+                        const [, year, month, day, hours, minutes, seconds] = matches;
+                        formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
+                    } else {
+                        console.warn('Unrecognized date format:', game.date);
+                    }
+                } catch (error) {
+                    console.error('Error parsing date:', game.date, error);
+                }
+            }
+
             tbody.append(`
                 <tr>
-                    <td>${game.date}</td>
+                    <td>${formattedDate}</td>
                     <td>${player ? player.name : 'Unknown'}</td>
                     <td>${place ? place.name : 'Unknown'}</td>
                     <td>${result}</td>
@@ -217,41 +234,79 @@ async function loadDashboardContent() {
                 submitBtn.textContent = 'Adding...';
 
                 try {
-                    const playerId = $('#winrate-player').val();
-                    const placeId = $('#winrate-place').val();
-                    const lose = $('input[name="winrate-result"]:checked').val();
-                    const date = $('#winrate-date').val();
+                    const playerIds = window.selectedPlayers.map(p => p.id_player);
+                    const loserId = document.getElementById('winrate-loser').value;
+                    const placeId = document.getElementById('winrate-place').value;
+                    const datetime = document.getElementById('winrate-datetime').value;
 
-                    // Get player and place details
-                    const playersData = await fetchData('Player');
-                    const placesData = await fetchData('Place');
-                    const player = playersData.find(p => p.id_player === playerId);
-                    const place = placesData.find(p => p.id_place === placeId);
-
-                    if (!player || !place) {
-                        alert('Invalid player or place selected.');
+                    if (playerIds.length === 0) {
+                        alert('Please select at least one player.');
+                        return;
+                    }
+                    if (!loserId) {
+                        alert('Please select the loser.');
+                        return;
+                    }
+                    if (!playerIds.includes(loserId)) {
+                        alert('Loser must be one of the selected players.');
+                        return;
+                    }
+                    if (!placeId) {
+                        alert('Please select a place.');
+                        return;
+                    }
+                    if (!datetime) {
+                        alert('Please enter date and time.');
                         return;
                     }
 
-                    const newData = {
-                        name_player: player.name,
-                        name_place: place.name,
-                        lose: parseInt(lose),
-                        date: date,
-                        id_place: placeId,
-                        id_player: playerId
-                    };
+                    // Get player and place details
+                    const players = await fetchData('Player');
+                    const places = await fetchData('Place');
+                    const place = places.find(p => p.id_place === placeId);
 
-                    const result = await insertData('Data', newData);
-                    if (result) {
-                        addWinrateModal.hide();
-                        $('#add-winrate-form')[0].reset();
-                        await loadDashboardContent();
-                    } else {
-                        alert('Failed to add winrate.');
+                    if (!place) {
+                        alert('Invalid place selected.');
+                        return;
                     }
-                } catch (err) {
-                    console.error('Error adding winrate:', err);
+
+                    // Ambil waktu dari input (anggap device sudah di zona WIB)
+                    const wibDate = new Date(datetime);
+
+                    // Format ke "YYYY-MM-DD HH:MM:SS" tanpa konversi timezone
+                    const dateStr = `${wibDate.getFullYear()}-${String(wibDate.getMonth() + 1).padStart(2, '0')}-${String(wibDate.getDate()).padStart(2, '0')} ${String(wibDate.getHours()).padStart(2, '0')}:${String(wibDate.getMinutes()).padStart(2, '0')}:${String(wibDate.getSeconds()).padStart(2, '0')}`;
+
+                    // Insert data for each player
+                    for (const playerId of playerIds) {
+                        const player = players.find(p => p.id_player === playerId);
+                        if (!player) continue;
+
+                        const lose = (playerId === loserId) ? 1 : 0;
+
+                        const newData = {
+                            name_player: player.name,
+                            name_place: place.name,
+                            lose: lose,
+                            date: dateStr,
+                            id_place: placeId,
+                            id_player: playerId
+                        };
+
+                        const result = await insertData('Data', newData);
+                        if (!result) {
+                            console.error('Failed to add winrate for player:', player.name);
+                            alert('Failed to add winrate for some players. Please try again.');
+                            return;
+                        }
+                    }
+
+                    console.log('Winrate added successfully');
+                    document.getElementById('add-winrate-form').reset();
+                    addWinrateModal.hide();
+                    await loadDashboardContent();
+                } catch (error) {
+                    console.error('Error adding winrate:', error);
+                    alert('Error adding winrate. Please try again.');
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Add Winrate';
@@ -349,12 +404,16 @@ async function loadPlayersAndPlaces() {
         const players = await fetchData('Player');
         const places = await fetchData('Place');
 
-        const playerSelect = document.getElementById('winrate-player');
+        const playerSelect = document.getElementById('winrate-players');
+        const loserSelect = document.getElementById('winrate-loser');
         const placeSelect = document.getElementById('winrate-place');
+        const selectedPlayersDiv = document.getElementById('selected-players');
 
-        // Clear existing options except the first
+        // Clear existing options
         playerSelect.innerHTML = '<option value="">Select Player</option>';
+        loserSelect.innerHTML = '<option value="">Select Loser</option>';
         placeSelect.innerHTML = '<option value="">Select Place</option>';
+        selectedPlayersDiv.innerHTML = '';
 
         // Populate player options
         players.forEach(player => {
@@ -372,9 +431,60 @@ async function loadPlayersAndPlaces() {
             placeSelect.appendChild(option);
         });
 
-        // Set default date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('winrate-date').value = today;
+        // Set default datetime to now
+        const now = new Date();
+        const localDatetime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        document.getElementById('winrate-datetime').value = localDatetime;
+
+        // Selected players array
+        let selectedPlayers = [];
+
+        // Function to update selected players display
+        function updateSelectedPlayersDisplay() {
+            selectedPlayersDiv.innerHTML = '';
+            selectedPlayers.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'd-inline-block me-2 mb-2';
+                playerDiv.innerHTML = `
+                    <span class="badge bg-primary">${player.name} <button type="button" class="btn-close btn-close-white ms-1" aria-label="Remove" data-player-id="${player.id_player}"></button></span>
+                `;
+                selectedPlayersDiv.appendChild(playerDiv);
+            });
+
+            // Update loser options
+            loserSelect.innerHTML = '<option value="">Select Loser</option>';
+            selectedPlayers.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.id_player;
+                option.textContent = player.name;
+                loserSelect.appendChild(option);
+            });
+        }
+
+        // Add player on select
+        playerSelect.addEventListener('change', () => {
+            const selectedValue = playerSelect.value;
+            if (selectedValue && !selectedPlayers.find(p => p.id_player === selectedValue)) {
+                const player = players.find(p => p.id_player === selectedValue);
+                if (player) {
+                    selectedPlayers.push(player);
+                    updateSelectedPlayersDisplay();
+                }
+            }
+            playerSelect.value = '';
+        });
+
+        // Remove player on button click
+        selectedPlayersDiv.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-close')) {
+                const playerId = e.target.getAttribute('data-player-id');
+                selectedPlayers = selectedPlayers.filter(p => p.id_player !== playerId);
+                updateSelectedPlayersDisplay();
+            }
+        });
+
+        // Store selected players for form submission
+        window.selectedPlayers = selectedPlayers;
     } catch (error) {
         console.error('Error loading players and places:', error);
     }
