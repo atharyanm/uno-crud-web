@@ -14,13 +14,46 @@ body {
     padding: 20px;
 }
 
-.login-image {
-    flex: 1;
-    max-width: 500px;
+.left-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin-right: 40px;
+}
+
+.login-image {
+    max-width: 500px;
+    margin-bottom: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.welcome-section {
+    text-align: center;
+    color: white;
+    max-width: 500px;
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 1s ease-out;
+}
+
+.welcome-section p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.welcome-section .features {
+    display: flex;
+    gap: 20px;
+    animation: fadeInUp 1s ease-out 0.4s both;
 }
 
 .image-content {
@@ -352,9 +385,12 @@ body {
         padding: 20px;
     }
 
-    .login-image {
+    .left-section {
         margin-right: 0;
         margin-bottom: 30px;
+    }
+
+    .login-image {
         max-width: 400px;
     }
 
@@ -368,9 +404,21 @@ body {
         padding: 15px;
     }
 
+    .left-section {
+        margin-bottom: 20px;
+    }
+
     .login-image {
         max-width: 300px;
+    }
+
+    .welcome-section {
+        order: -1;
         margin-bottom: 20px;
+    }
+
+    .login-image {
+        order: 0;
     }
 
     #login-container {
@@ -404,8 +452,15 @@ body {
         padding: 10px;
     }
 
+    .left-section {
+        margin-bottom: 15px;
+    }
+
     .login-image {
         max-width: 250px;
+    }
+
+    .welcome-section {
         margin-bottom: 15px;
     }
 
