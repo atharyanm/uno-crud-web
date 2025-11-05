@@ -2,11 +2,26 @@
 let currentPage = 'dashboard';
 let winrateFormInitialized = false;
 
-$(document).ready(function() {
+function checkSession() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     if (!loggedInUser) {
         window.location.href = 'index.html';
-        return;
+        return true; // redirected
+    }
+    return false;
+}
+
+$(document).ready(function() {
+    if (checkSession()) return;
+
+    // Role-based access control
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (loggedInUser.role !== 'admin') {
+        // Hide admin-only menu items
+        $('.nav-link[data-page="player"]').parent().hide();
+        $('.nav-link[data-page="place"]').parent().hide();
+        $('.nav-link[data-page="user"]').parent().hide();
+        $('.nav-link[data-page="game"]').parent().hide();
     }
 
     // Load default page (dashboard)
@@ -147,6 +162,7 @@ $(document).ready(function() {
 });
 
 function loadPage(page) {
+    if (checkSession()) return;
     currentPage = page;
     // Load content from separate HTML files for all pages
     $.get(`pages/${page}.html`, function(data) {

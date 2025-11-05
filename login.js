@@ -3,6 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Login page loaded');
     const loginForm = document.getElementById('login-form');
     const loginMessage = document.getElementById('login-message');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+
+    // Toggle password visibility
+    togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        togglePasswordBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -14,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // For demo purposes, use hardcoded login first
             if (username === 'admin' && password === 'admin123') {
                 console.log('Login successful with hardcoded credentials');
-                localStorage.setItem('loggedInUser', JSON.stringify({ id_user: 'USR_01', username: 'admin', password: 'admin123' }));
+                localStorage.setItem('loggedInUser', JSON.stringify({ id_user: 'USR_001', username: 'admin', password: 'admin123', role: 'admin' }));
                 window.location.href = 'homepage.html';
                 return;
             }

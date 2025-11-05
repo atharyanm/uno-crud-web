@@ -3,19 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uno Win Rate Calculator</title>
+    <title>Sabung Win Rate</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
-    <div id="login-container">
-        <h2>Login</h2>
-        <form id="login-form">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <div id="login-message"></div>
+    <div class="login-wrapper">
+        <div class="login-image">
+            <div class="image-content">
+                <img src="foto/assets/landing.jpg" alt="Uno Win Rate Calculator">
+                <div class="image-overlay">
+                    <h1>Welcome to Sabung Win Rate Calculator</h1>
+                    <p>Track your game statistics and improve your winning strategies!</p>
+                    <div class="features">
+                        <div class="feature-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Track Win Rates</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-users"></i>
+                            <span>Transaksi Bawah Meja</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>Game Statistics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="login-container">
+            <div class="login-header">
+                <h2>Sign In</h2>
+                <p>Please enter your credentials to access your dashboard</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i>
+                        Username
+                    </label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="password-container">
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                        <button type="button" id="toggle-password" class="toggle-password-btn">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login to Dashboard
+                </button>
+            </form>
+            <div id="login-message"></div>
+            <div class="login-footer">
+                <p>Don't have an account? <span class="highlight">Contact Administrator</span></p>
+            </div>
+        </div>
     </div>
     <script src="koneksi.js"></script>
     <script src="login.js"></script>
