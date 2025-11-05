@@ -54,29 +54,35 @@ $(document).ready(function() {
 
         if (windowWidth >= 768) {
             // Desktop/Tablet behavior: hide/show sidebar with content shift
-            if (sidebar.hasClass('hidden')) {
+            if (sidebar.hasClass('d-none')) {
                 // Show sidebar
-                sidebar.removeClass('hidden');
+                sidebar.removeClass('d-none');
                 main.removeClass('main-hidden');
                 updateToggleButtonPosition(windowWidth, false);
-                icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+                $(this).attr('title', 'Close sidebar');
             } else {
                 // Hide sidebar
-                sidebar.addClass('hidden');
+                sidebar.addClass('d-none');
                 main.addClass('main-hidden');
                 updateToggleButtonPosition(windowWidth, true);
-                icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+                $(this).attr('title', 'Open sidebar');
             }
         } else {
             // Mobile behavior: overlay sidebar
             if (sidebar.hasClass('show')) {
                 // Hide sidebar
-                sidebar.removeClass('show');
-                icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
+                sidebar.removeClass('show').addClass('hidden');
+                updateToggleButtonPosition(windowWidth, true);
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+                $(this).attr('title', 'Open sidebar');
             } else {
                 // Show sidebar
                 sidebar.removeClass('hidden').addClass('show');
-                icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+                updateToggleButtonPosition(windowWidth, false);
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+                $(this).attr('title', 'Close sidebar');
             }
         }
     });
@@ -87,22 +93,31 @@ $(document).ready(function() {
         const icon = toggleBtn.find('i');
 
         if (windowWidth < 768) {
-            // Mobile: always at 10px
-            toggleBtn.css({
-                'left': '10px',
-                'top': '15px',
-                'transform': 'translateY(0)'
-            });
-            icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
-        } else {
-            // Desktop/Tablet: position based on sidebar width
+            // Mobile: position based on sidebar state, centered vertically
             if (isHidden) {
                 toggleBtn.css({
                     'left': '10px',
                     'top': '50%',
                     'transform': 'translateY(-50%)'
                 });
-                icon.removeClass('fa-chevron-right').addClass('fa-chevron-left');
+            } else {
+                const sidebarWidth = 250; // Mobile sidebar width
+                toggleBtn.css({
+                    'left': (sidebarWidth - 20) + 'px',
+                    'top': '50%',
+                    'transform': 'translateY(-50%)'
+                });
+            }
+            icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+        } else {
+            // Desktop/Tablet: position based on sidebar width
+            if (isHidden) {
+                toggleBtn.css({
+                    'left': '0px',
+                    'top': '50%',
+                    'transform': 'translateY(-50%)'
+                });
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
             } else {
                 const sidebarWidth = windowWidth < 1024 ? 180 : 250;
                 toggleBtn.css({
@@ -110,7 +125,7 @@ $(document).ready(function() {
                     'top': '50%',
                     'transform': 'translateY(-50%)'
                 });
-                icon.removeClass('fa-chevron-left').addClass('fa-chevron-right');
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
             }
         }
     }
@@ -122,18 +137,13 @@ $(document).ready(function() {
         const main = $('main');
 
         if (windowWidth < 768) {
-            // Mobile: sidebar is hidden by default (overlay mode, no 'hidden' class used)
-            sidebar.removeClass('show');
+            // Mobile: sidebar is hidden by default (overlay mode)
+            sidebar.removeClass('show d-none');
             main.removeClass('main-hidden');
             updateToggleButtonPosition(windowWidth, true);
-        } else if (windowWidth < 1024) {
-            // Tablet: adjust sidebar width and toggle position
-            sidebar.removeClass('hidden').addClass('show');
-            main.removeClass('main-hidden');
-            updateToggleButtonPosition(windowWidth, false);
         } else {
-            // Desktop: sidebar is shown by default
-            sidebar.removeClass('hidden').addClass('show');
+            // Desktop/Tablet: sidebar is shown by default
+            sidebar.removeClass('d-none');
             main.removeClass('main-hidden');
             updateToggleButtonPosition(windowWidth, false);
         }

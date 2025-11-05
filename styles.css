@@ -209,7 +209,7 @@ main.main-hidden {
 .sidebar-toggle-btn {
     position: fixed;
     left: 0;
-    top: 75%;
+    top: 50%;
     transform: translateY(-50%);
     z-index: 1050;
     width: 30px;
