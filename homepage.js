@@ -24,6 +24,9 @@ $(document).ready(function() {
         $('.nav-link[data-page="game"]').parent().hide();
     }
 
+    // Update profile username display
+    $('#profile-username').text(loggedInUser.username);
+
     // Load default page (dashboard)
     loadPage('dashboard');
 
