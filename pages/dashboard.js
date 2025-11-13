@@ -436,7 +436,7 @@ window.renderRecentGamesPagination = function(totalPages, currentPage) {
 
     const prevLi = document.createElement('li');
     prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-    prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage - 1})">Previous</a>`;
+    prevLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeRecentGamesPage(${currentPage - 1})">Previous</a>`;
     paginationContainer.appendChild(prevLi);
 
     // Page numbers - show only 5 pages centered around current page
@@ -452,13 +452,13 @@ window.renderRecentGamesPagination = function(totalPages, currentPage) {
     for (let i = startPage; i <= endPage; i++) {
         const pageLi = document.createElement('li');
         pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        pageLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${i})">${i}</a>`;
+        pageLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeRecentGamesPage(${i})">${i}</a>`;
         paginationContainer.appendChild(pageLi);
     }
 
     const nextLi = document.createElement('li');
     nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-    nextLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage + 1})">Next</a>`;
+    nextLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeRecentGamesPage(${currentPage + 1})">Next</a>`;
     paginationContainer.appendChild(nextLi);
 
     console.log('[Pagination] Pagination rendered successfully');
