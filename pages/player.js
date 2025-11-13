@@ -60,8 +60,8 @@ window.loadPlayerContent = async () => {
 
 // === PERUBAHAN DI SINI ===
 // Nama variabel diganti agar tidak bentrok dengan homepage.js
-var playerPagination_CurrentPage = 1; 
-var playersPerPage = 10; 
+window.playerPagination_CurrentPage = 1;
+window.playersPerPage = 10; // Ubah dari var ke window.
 
 // DIUBAH: Tambahkan "window."
 window.loadPlayers = async function(page = 1) {
@@ -71,9 +71,9 @@ window.loadPlayers = async function(page = 1) {
 
         // Calculate pagination
         const totalPlayers = players.length;
-        const totalPages = Math.ceil(totalPlayers / playersPerPage);
-        const startIndex = (page - 1) * playersPerPage;
-        const endIndex = startIndex + playersPerPage;
+        const totalPages = Math.ceil(totalPlayers / window.playersPerPage);
+        const startIndex = (page - 1) * window.playersPerPage;
+        const endIndex = startIndex + window.playersPerPage;
         const playersToShow = players.slice(startIndex, endIndex);
 
         const tbody = document.querySelector('#players-table tbody');
@@ -139,9 +139,8 @@ window.renderPlayerPagination = function(totalPages, currentPage) {
 
 // === PERUBAHAN DI SINI ===
 window.changePlayerPage = (page) => {
-    // Menggunakan nama variabel baru
-    playerPagination_CurrentPage = page; 
-    loadPlayers(page);
+    window.playerPagination_CurrentPage = page;
+    window.loadPlayers(page);
 }
 
 window.deletePlayer = async (id) => {

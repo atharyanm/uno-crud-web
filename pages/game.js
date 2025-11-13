@@ -58,8 +58,8 @@ window.loadGameContent = async () => {
     window.deleteGame = deleteGame;
 };
 
-var currentGamePage = 1;
-var gamesPerPage = 10; // DIUBAH
+window.currentGamePage = 1;
+window.gamesPerPage = 10; // Ubah dari var ke window
 
 // DIUBAH: Tambahkan "window."
 window.loadGames = async function(page = 1) {
@@ -68,9 +68,9 @@ window.loadGames = async function(page = 1) {
 
         // Calculate pagination
         const totalGames = games.length;
-        const totalPages = Math.ceil(totalGames / gamesPerPage);
-        const startIndex = (page - 1) * gamesPerPage;
-        const endIndex = startIndex + gamesPerPage;
+        const totalPages = Math.ceil(totalGames / window.gamesPerPage);
+        const startIndex = (page - 1) * window.gamesPerPage;
+        const endIndex = startIndex + window.gamesPerPage;
         const gamesToShow = games.slice(startIndex, endIndex);
 
         const tbody = document.querySelector('#games-table tbody');
@@ -128,8 +128,8 @@ window.renderGamePagination = function(totalPages, currentPage) {
 }
 
 window.changeGamePage = (page) => {
-    currentGamePage = page;
-    loadGames(page);
+    window.currentGamePage = page;
+    window.loadGames(page);
 }
 
 window.deleteGame = async (id) => {

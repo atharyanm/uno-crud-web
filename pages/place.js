@@ -58,8 +58,8 @@ window.loadPlaceContent = async () => {
     window.deletePlace = deletePlace;
 };
 
-var currentPlacePage = 1;
-var placesPerPage = 10; // DIUBAH
+window.currentPlacePage = 1;
+window.placesPerPage = 10; // Ubah dari var ke window
 
 // DIUBAH: Tambahkan "window."
 window.loadPlaces = async function(page = 1) {
@@ -68,9 +68,9 @@ window.loadPlaces = async function(page = 1) {
 
         // Calculate pagination
         const totalPlaces = places.length;
-        const totalPages = Math.ceil(totalPlaces / placesPerPage);
-        const startIndex = (page - 1) * placesPerPage;
-        const endIndex = startIndex + placesPerPage;
+        const totalPages = Math.ceil(totalPlaces / window.placesPerPage);
+        const startIndex = (page - 1) * window.placesPerPage;
+        const endIndex = startIndex + window.placesPerPage;
         const placesToShow = places.slice(startIndex, endIndex);
 
         const tbody = document.querySelector('#places-table tbody');
@@ -128,8 +128,8 @@ window.renderPlacePagination = function(totalPages, currentPage) {
 }
 
 window.changePlacePage = (page) => {
-    currentPlacePage = page;
-    loadPlaces(page);
+    window.currentPlacePage = page;
+    window.loadPlaces(page);
 }
 
 window.deletePlace = async (id) => {

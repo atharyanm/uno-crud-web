@@ -919,6 +919,9 @@ async function loadPlayerContent() {
     window.deletePlayer = deletePlayer;
 }
 
+let currentPlayerPage = 1;
+const homepagePlayersPerPage = 10; // Nama unik
+
 async function loadPlayers(page = 1) {
     try {
         const players = await fetchData('Player');
@@ -926,7 +929,7 @@ async function loadPlayers(page = 1) {
 
         // Calculate pagination
         const totalPlayers = players.length;
-        const playersPerPage = 10;
+        const playersPerPage = homepagePlayersPerPage; // Gunakan variabel unik
         const totalPages = Math.ceil(totalPlayers / playersPerPage);
         const startIndex = (page - 1) * playersPerPage;
         const endIndex = startIndex + playersPerPage;
@@ -1095,123 +1098,6 @@ function renderPlayerPagination(totalPages, currentPage) {
 function changePlayerPage(page) {
     currentPlayerPage = page;
     loadPlayers(page);
-}
-
-let currentPlayerPage = 1;
-const playersPerPage = 10;
-
-async function loadPlaceContent() {
-    console.log('Loading place content');
-    // Load places
-    await loadPlaces();
-
-    // Modal functionality using Bootstrap
-    const modal = new bootstrap.Modal(document.getElementById('place-modal'));
-    document.getElementById('add-place-btn').addEventListener('click', () => {
-        modal.show();
-    });
-
-    // Add place form
-    document.getElementById('place-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const form = document.getElementById('place-form');
-        const loadingDiv = document.getElementById('place-loading');
-        const submitBtn = form.querySelector('button[type="submit"]');
-
-        // Show loading
-        loadingDiv.classList.remove('d-none');
-        form.style.display = 'none';
-        submitBtn.disabled = true;
-
-        try {
-            const namePlace = document.getElementById('place-name').value;
-            const date = document.getElementById('place-date').value;
-            const idPlace = await generateSequentialId('Place', 'PLC_');
-            console.log(`Adding new place: ${namePlace}, ID: ${idPlace}, Date: ${date}`);
-
-            const newPlace = { id_place: idPlace, name: namePlace, date: date };
-            const result = await insertData('Place', newPlace);
-            if (result) {
-                console.log('Place added successfully');
-                document.getElementById('place-name').value = '';
-                document.getElementById('place-date').value = '';
-                modal.hide();
-                await loadPlaces();
-            } else {
-                console.error('Failed to add place');
-                alert('Failed to add place. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error adding place:', error);
-            alert('Error adding place. Please try again.');
-        } finally {
-            // Hide loading
-            loadingDiv.classList.add('d-none');
-            form.style.display = 'block';
-            submitBtn.disabled = false;
-        }
-    });
-
-    // Attach edit and delete functions globally
-    window.editPlace = editPlace;
-    window.deletePlace = deletePlace;
-}
-
-async function loadGameContent() {
-    console.log('Loading game content');
-    // Load games
-    await loadGames();
-
-    // Modal functionality using Bootstrap
-    const modal = new bootstrap.Modal(document.getElementById('game-modal'));
-    document.getElementById('add-game-btn').addEventListener('click', () => {
-        modal.show();
-    });
-
-    // Add game form
-    document.getElementById('game-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const form = document.getElementById('game-form');
-        const loadingDiv = document.getElementById('game-loading');
-        const submitBtn = form.querySelector('button[type="submit"]');
-
-        // Show loading
-        loadingDiv.classList.remove('d-none');
-        form.style.display = 'none';
-        submitBtn.disabled = true;
-
-        try {
-            const nameGame = document.getElementById('game-name').value;
-            const date = document.getElementById('game-date').value;
-            const idGame = await generateSequentialId('Game', 'GAM_');
-            console.log(`Adding new game: ${nameGame}, ID: ${idGame}, Date: ${date}`);
-
-            const newGame = { id_game: idGame, name_game: nameGame, added: date };
-            const result = await insertData('Game', newGame);
-            if (result) {
-                console.log('Game added successfully');
-                document.getElementById('game-name').value = '';
-                document.getElementById('game-date').value = '';
-                modal.hide();
-                await loadGames();
-            } else {
-                console.error('Failed to add game');
-                alert('Failed to add game. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error adding game:', error);
-            alert('Error adding game. Please try again.');
-        } finally {
-            // Hide loading
-            loadingDiv.classList.add('d-none');
-            form.style.display = 'block';
-            submitBtn.disabled = false;
-        }
-    });
-
-    // Attach edit and delete functions globally
-    window.editGame = editGame;
-    window.deleteGame = deleteGame;
 }
 
 let currentPlacePage = 1;
