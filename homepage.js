@@ -542,8 +542,17 @@ function renderRecentGamesPagination(totalPages, currentPage) {
     prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage - 1})">Previous</a>`;
     paginationContainer.appendChild(prevLi);
 
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
+    // Page numbers - show only 5 pages centered around current page
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    // Adjust startPage if we're near the end
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
         const pageLi = document.createElement('li');
         pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
         pageLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${i})">${i}</a>`;
