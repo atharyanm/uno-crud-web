@@ -3,11 +3,26 @@
         <div class="col-12">
             <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
             <div class="row g-3">
-                <div class="col-lg-4">
+                <div class="col-lg-8">
                     <div class="card h-100">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">Best Player Ranking</h5>
-                            <p class="card-text flex-grow-1 d-flex align-items-center" id="best-player">Loading...</p>
+                        <div class="card-body">
+                            <h5 class="card-title">Player Leaderboard</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="leaderboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Player</th>
+                                            <th>Points</th>
+                                            <th>Wins</th>
+                                            <th>Losses</th>
+                                            <th>Winrate (%)</th>
+                                            <th>Games</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

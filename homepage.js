@@ -1,8 +1,6 @@
 // homepage.js - Homepage with dynamic page loading
+const APP_VERSION = "1.0.1";
 let currentPage = 'dashboard';
-let winrateFormInitialized = false;
-let currentRecentGamesPage = 1;
-const recentGamesPerPage = 10;
 
 function checkSession() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -179,21 +177,21 @@ $(document).ready(function() {
 function loadPage(page) {
     if (checkSession()) return;
     currentPage = page;
-    // Load content from separate HTML files for all pages
-    $.get(`pages/${page}.html`, function(data) {
+    
+    // 1. Muat konten HTML (dengan parameter versi)
+    $.get(`pages/${page}.html?v=${APP_VERSION}`, function(data) {
         $('#page-content').html(data);
-        // Execute page-specific JavaScript after loading
-        if (page === 'dashboard') {
-            loadDashboardContent();
-        } else if (page === 'user') {
-            loadUserContent();
-        } else if (page === 'player') {
-            loadPlayerContent();
-        } else if (page === 'place') {
-            loadPlaceContent();
-        } else if (page === 'game') {
-            loadGameContent();
-        }
+        
+        // 2. Muat file JS yang sesuai (dengan parameter versi)
+        $.getScript(`pages/${page}.js?v=${APP_VERSION}`, function() {
+            // 3. Jalankan fungsi load spesifik halaman (mis: loadDashboardContent)
+            const loadFunctionName = `load${page.charAt(0).toUpperCase() + page.slice(1)}Content`;
+            if (window[loadFunctionName]) {
+                window[loadFunctionName]();
+            }
+        }).fail(function() {
+            console.error(`Failed to load pages/${page}.js`);
+        });
     }).fail(function() {
         $('#page-content').html('<p>Error loading page content.</p>');
     });
@@ -771,9 +769,6 @@ function changeUserPage(page) {
     currentUserPage = page;
     loadUsers(page);
 }
-
-let currentUserPage = 1;
-const usersPerPage = 10;
 
 async function deleteUser(id) {
     console.log(`Deleting user with ID: ${id}`);

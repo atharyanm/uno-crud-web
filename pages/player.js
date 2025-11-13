@@ -1,26 +1,8 @@
 // player.js - Player management
 
-// Attach edit and delete functions globally
-window.editPlayer = editPlayer;
-window.deletePlayer = deletePlayer;
-
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Player page loaded');
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    if (!loggedInUser) {
-        console.log('No logged in user, redirecting to login');
-        window.location.href = '../index.html';
-        return;
-    }
-    console.log('User logged in:', loggedInUser);
-
-    // Logout functionality
-    document.getElementById('logout').addEventListener('click', () => {
-        console.log('Logout clicked');
-        localStorage.removeItem('loggedInUser');
-        window.location.href = '../index.html';
-    });
-
+// Global function to load player content
+window.loadPlayerContent = async () => {
+    console.log('Loading player content');
     // Load players
     await loadPlayers();
 
@@ -29,12 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('add-player-btn').addEventListener('click', () => {
         modal.show();
     });
-
-    // Modal functionality for edit player using Bootstrap
-    const editModal = new bootstrap.Modal(document.getElementById('edit-player-modal'));
-
-    // Modal functionality for delete confirmation using Bootstrap
-    const deleteModal = new bootstrap.Modal(document.getElementById('delete-player-modal'));
 
     // Add player form
     document.getElementById('player-form').addEventListener('submit', async (e) => {
@@ -76,12 +52,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.disabled = false;
         }
     });
-});
 
-let currentPlayerPage = 1;
-const playersPerPage = 10;
+    // Attach edit and delete functions globally
+    window.editPlayer = editPlayer;
+    window.deletePlayer = deletePlayer;
+};
 
-async function loadPlayers(page = 1) {
+// === PERUBAHAN DI SINI ===
+// Nama variabel diganti agar tidak bentrok dengan homepage.js
+var playerPagination_CurrentPage = 1; 
+var playersPerPage = 10; 
+
+// DIUBAH: Tambahkan "window."
+window.loadPlayers = async function(page = 1) {
     try {
         const players = await fetchData('Player');
         const data = await fetchData('Data');
@@ -97,7 +80,7 @@ async function loadPlayers(page = 1) {
         tbody.innerHTML = '';
 
         playersToShow.forEach(player => {
-            const playerGames = data.filter(d => d.name === player.id_player);
+            const playerGames = data.filter(d => d.id_player === player.id_player);
             const totalGames = playerGames.length;
             const losses = playerGames.filter(d => d.lose === '1' || d.lose === 1).length;
             const wins = totalGames - losses;
@@ -126,7 +109,8 @@ async function loadPlayers(page = 1) {
     }
 }
 
-function renderPlayerPagination(totalPages, currentPage) {
+// DIUBAH: Tambahkan "window."
+window.renderPlayerPagination = function(totalPages, currentPage) {
     const paginationContainer = document.getElementById('player-pagination');
     paginationContainer.innerHTML = '';
 
@@ -153,12 +137,14 @@ function renderPlayerPagination(totalPages, currentPage) {
     paginationContainer.appendChild(nextLi);
 }
 
-function changePlayerPage(page) {
-    currentPlayerPage = page;
+// === PERUBAHAN DI SINI ===
+window.changePlayerPage = (page) => {
+    // Menggunakan nama variabel baru
+    playerPagination_CurrentPage = page; 
     loadPlayers(page);
 }
 
-async function deletePlayer(id) {
+window.deletePlayer = async (id) => {
     console.log(`Deleting player with ID: ${id}`);
     // Open delete confirmation modal using Bootstrap
     const deleteModal = new bootstrap.Modal(document.getElementById('delete-player-modal'));
@@ -194,7 +180,7 @@ async function deletePlayer(id) {
     };
 }
 
-async function editPlayer(id) {
+window.editPlayer = async (id) => {
     console.log(`Editing player with ID: ${id}`);
     // Open edit modal and populate fields using Bootstrap
     const editModal = new bootstrap.Modal(document.getElementById('edit-player-modal'));

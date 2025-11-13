@@ -1,2 +1,0 @@
-- [ ] Edit index.html: Move h1, p, features from .image-overlay to a new .welcome-section div between .login-image and #login-container
-- [ ] Edit login.css: Change .login-wrapper to flex-direction: column; adjust .login-image height; style .welcome-section; remove text from .image-overlay but keep overlay; update responsive styles

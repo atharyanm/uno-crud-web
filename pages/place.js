@@ -1,21 +1,8 @@
 // place.js - Place management
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Place page loaded');
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    if (!loggedInUser) {
-        console.log('No logged in user, redirecting to login');
-        window.location.href = '../index.html';
-        return;
-    }
-    console.log('User logged in:', loggedInUser);
 
-    // Logout functionality
-    document.getElementById('logout').addEventListener('click', () => {
-        console.log('Logout clicked');
-        localStorage.removeItem('loggedInUser');
-        window.location.href = '../index.html';
-    });
-
+// Global function to load place content
+window.loadPlaceContent = async () => {
+    console.log('Loading place content');
     // Load places
     await loadPlaces();
 
@@ -24,9 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('add-place-btn').addEventListener('click', () => {
         modal.show();
     });
-
-    // Delete confirmation modal
-    const deleteModal = new bootstrap.Modal(document.getElementById('delete-place-modal'));
 
     // Add place form
     document.getElementById('place-form').addEventListener('submit', async (e) => {
@@ -68,12 +52,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.disabled = false;
         }
     });
-});
 
-let currentPlacePage = 1;
-const placesPerPage = 10;
+    // Attach edit and delete functions globally
+    window.editPlace = editPlace;
+    window.deletePlace = deletePlace;
+};
 
-async function loadPlaces(page = 1) {
+var currentPlacePage = 1;
+var placesPerPage = 10; // DIUBAH
+
+// DIUBAH: Tambahkan "window."
+window.loadPlaces = async function(page = 1) {
     try {
         const places = await fetchData('Place');
 
@@ -110,7 +99,8 @@ async function loadPlaces(page = 1) {
     }
 }
 
-function renderPlacePagination(totalPages, currentPage) {
+// DIUBAH: Tambahkan "window."
+window.renderPlacePagination = function(totalPages, currentPage) {
     const paginationContainer = document.getElementById('place-pagination');
     paginationContainer.innerHTML = '';
 
@@ -137,12 +127,12 @@ function renderPlacePagination(totalPages, currentPage) {
     paginationContainer.appendChild(nextLi);
 }
 
-function changePlacePage(page) {
+window.changePlacePage = (page) => {
     currentPlacePage = page;
     loadPlaces(page);
 }
 
-async function deletePlace(id) {
+window.deletePlace = async (id) => {
     console.log(`Deleting place with ID: ${id}`);
     // Open delete confirmation modal using Bootstrap
     const deleteModal = new bootstrap.Modal(document.getElementById('delete-place-modal'));
@@ -178,7 +168,7 @@ async function deletePlace(id) {
     };
 }
 
-async function editPlace(id) {
+window.editPlace = async (id) => {
     console.log(`Editing place with ID: ${id}`);
     // Open edit modal and populate fields using Bootstrap
     const editModal = new bootstrap.Modal(document.getElementById('edit-place-modal'));

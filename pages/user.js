@@ -1,21 +1,9 @@
-// user.js - User management
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('User page loaded');
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    if (!loggedInUser) {
-        console.log('No logged in user, redirecting to login');
-        window.location.href = '../index.html';
-        return;
-    }
-    console.log('User logged in:', loggedInUser);
+// pages/user.js - User management
+var currentUserPage = 1; // DIUBAH
+var usersPerPage = 10; // DIUBAH
 
-    // Logout functionality
-    document.getElementById('logout').addEventListener('click', () => {
-        console.log('Logout clicked');
-        localStorage.removeItem('loggedInUser');
-        window.location.href = '../index.html';
-    });
-
+window.loadUserContent = async () => {
+    console.log('Loading user content');
     // Load users
     await loadUsers();
 
@@ -25,68 +13,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         modal.show();
     });
 
-    // Modal functionality for edit user
-    const editModal = document.getElementById('edit-user-modal');
-    const editSpan = document.getElementById('edit-close');
-
-    editSpan.addEventListener('click', function() {
-        editModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', function(event) {
-        if (event.target == editModal) {
-            editModal.style.display = 'none';
-        }
-    });
-
-    // Modal functionality for delete confirmation
-    const deleteModal = document.getElementById('delete-user-modal');
-    const deleteSpan = document.getElementById('delete-close');
-    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-
-    deleteSpan.addEventListener('click', function() {
-        deleteModal.style.display = 'none';
-    });
-
-    cancelDeleteBtn.addEventListener('click', function() {
-        deleteModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', function(event) {
-        if (event.target == deleteModal) {
-            deleteModal.style.display = 'none';
-        }
-    });
-
     // Add user form
     document.getElementById('user-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('user-username').value;
-        const password = document.getElementById('user-password').value;
-        const role = document.getElementById('user-role').value || 'user';
-        const idUser = await generateSequentialId('User', 'USR_');
-        console.log(`Adding new user: ${username}, ID: ${idUser}, Role: ${role}`);
+        const form = document.getElementById('user-form');
+        const loadingDiv = document.getElementById('user-loading');
+        const submitBtn = form.querySelector('button[type="submit"]');
 
-        const newUser = { id_user: idUser, username, password, role };
-        const result = await insertData('User', newUser);
-        if (result) {
-            console.log('User added successfully');
-            document.getElementById('user-username').value = '';
-            document.getElementById('user-password').value = '';
-            document.getElementById('user-role').value = 'user';
-            modal.style.display = 'none'; // Close modal after success
-            await loadUsers();
-        } else {
-            console.error('Failed to add user');
+        // Show loading
+        loadingDiv.classList.remove('d-none');
+        form.style.display = 'none';
+        submitBtn.disabled = true;
+
+        try {
+            const username = document.getElementById('user-username').value;
+            const password = document.getElementById('user-password').value;
+            const role = document.getElementById('user-role').value || 'user';
+            const idUser = await generateSequentialId('User', 'USR_');
+            console.log(`Adding new user: ${username}, ID: ${idUser}, Role: ${role}`);
+
+            const newUser = { id_user: idUser, username, password, role };
+            const result = await insertData('User', newUser);
+            if (result) {
+                console.log('User added successfully');
+                document.getElementById('user-username').value = '';
+                document.getElementById('user-password').value = '';
+                document.getElementById('user-role').value = 'user';
+                modal.hide();
+                await loadUsers();
+            } else {
+                console.error('Failed to add user');
+                alert('Failed to add user. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error adding user:', error);
+            alert('Error adding user. Please try again.');
+        } finally {
+            // Hide loading
+            loadingDiv.classList.add('d-none');
+            form.style.display = 'block';
+            submitBtn.disabled = false;
         }
     });
-});
 
-let currentUserPage = 1;
-const usersPerPage = 10;
+    // Attach edit and delete functions globally
+    window.editUser = editUser;
+    window.deleteUser = deleteUser;
+}
 
-async function loadUsers(page = 1) {
+// DIUBAH: Tambahkan "window."
+window.loadUsers = async function(page = 1) {
     try {
         const users = await fetchData('User');
 
@@ -132,7 +108,8 @@ async function loadUsers(page = 1) {
     }
 }
 
-function renderUserPagination(totalPages, currentPage) {
+// DIUBAH: Tambahkan "window."
+window.renderUserPagination = function(totalPages, currentPage) {
     console.log('Rendering pagination, totalPages:', totalPages, 'currentPage:', currentPage);
     const paginationContainer = document.getElementById('user-pagination');
     console.log('Pagination container:', paginationContainer);
@@ -165,55 +142,95 @@ function renderUserPagination(totalPages, currentPage) {
     paginationContainer.appendChild(nextLi);
 }
 
-function changeUserPage(page) {
+// Assign to window to be accessible from onclick attributes
+window.changeUserPage = (page) => {
     currentUserPage = page;
     loadUsers(page);
 }
 
-async function deleteUser(id) {
+// Assign to window to be accessible from onclick attributes
+window.deleteUser = async (id) => {
     console.log(`Deleting user with ID: ${id}`);
-    // Open delete confirmation modal
-    const deleteModal = document.getElementById('delete-user-modal');
-    deleteModal.style.display = 'block';
+    // Open delete confirmation modal using Bootstrap
+    const deleteModal = new bootstrap.Modal(document.getElementById('delete-user-modal'));
+    deleteModal.show();
 
     // Handle confirm delete
     document.getElementById('confirm-delete-btn').onclick = async () => {
-        const result = await deleteData('User', id);
-        if (result) {
-            console.log('User deleted successfully');
-            deleteModal.style.display = 'none';
-            await loadUsers();
-        } else {
-            console.error('Failed to delete user');
+        const loadingDiv = document.getElementById('delete-user-loading');
+        const confirmContent = document.getElementById('delete-confirm-content');
+
+        // Show loading
+        loadingDiv.classList.remove('d-none');
+        confirmContent.style.display = 'none';
+
+        try {
+            const result = await deleteData('User', id);
+            if (result) {
+                console.log('User deleted successfully');
+                deleteModal.hide();
+                await loadUsers();
+            } else {
+                console.error('Failed to delete user');
+                alert('Failed to delete user. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Error deleting user. Please try again.');
+        } finally {
+            // Hide loading
+            loadingDiv.classList.add('d-none');
+            confirmContent.style.display = 'block';
         }
     };
 }
 
-async function editUser(id) {
+// Assign to window to be accessible from onclick attributes
+window.editUser = async (id) => {
     console.log(`Editing user with ID: ${id}`);
-    // Open edit modal and populate fields
-    const editModal = document.getElementById('edit-user-modal');
+    // Open edit modal and populate fields using Bootstrap
+    const editModal = new bootstrap.Modal(document.getElementById('edit-user-modal'));
     const users = await fetchData('User');
     const user = users.find(u => u.id_user === id);
     if (user) {
         document.getElementById('edit-user-username').value = user.username;
         document.getElementById('edit-user-password').value = user.password;
         document.getElementById('edit-user-role').value = user.role;
-        editModal.style.display = 'block';
+        editModal.show();
 
         // Handle edit form submission
         document.getElementById('edit-user-form').onsubmit = async (e) => {
             e.preventDefault();
-            const newUsername = document.getElementById('edit-user-username').value;
-            const newPassword = document.getElementById('edit-user-password').value;
-            const newRole = document.getElementById('edit-user-role').value;
-            const result = await updateData('User', id, { username: newUsername, password: newPassword, role: newRole });
-            if (result) {
-                console.log('User updated successfully');
-                editModal.style.display = 'none';
-                await loadUsers();
-            } else {
-                console.error('Failed to update user');
+            const form = document.getElementById('edit-user-form');
+            const loadingDiv = document.getElementById('edit-user-loading');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            // Show loading
+            loadingDiv.classList.remove('d-none');
+            form.style.display = 'none';
+            submitBtn.disabled = true;
+
+            try {
+                const newUsername = document.getElementById('edit-user-username').value;
+                const newPassword = document.getElementById('edit-user-password').value;
+                const newRole = document.getElementById('edit-user-role').value;
+                const result = await updateData('User', id, { username: newUsername, password: newPassword, role: newRole });
+                if (result) {
+                    console.log('User updated successfully');
+                    editModal.hide();
+                    await loadUsers();
+                } else {
+                    console.error('Failed to update user');
+                    alert('Failed to update user. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert('Error updating user. Please try again.');
+            } finally {
+                // Hide loading
+                loadingDiv.classList.add('d-none');
+                form.style.display = 'block';
+                submitBtn.disabled = false;
             }
         };
     }

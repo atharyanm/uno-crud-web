@@ -1,169 +1,224 @@
-// dashboard.js - Dashboard functionality (same as homepage.js)
-document.addEventListener('DOMContentLoaded', async () => {
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    if (!loggedInUser) {
-        window.location.href = '../index.html';
-        return;
-    }
+// dashboard.js - Dashboard functionality
+var winrateFormInitialized = false; // DIUBAH
+var currentRecentGamesPage = 1; // DIUBAH
+var recentGamesPerPage = 10; // DIUBAH
 
-    // Logout functionality
-    document.getElementById('logout').addEventListener('click', () => {
-        localStorage.removeItem('loggedInUser');
-        window.location.href = '../index.html';
-    });
+// Global function to load dashboard content
+window.loadDashboardContent = async () => {
+    try {
+        // Load best player
+        await loadBestPlayer();
 
-    // Load best player
-    await loadBestPlayer();
+        // Load worst player (handled inside loadBestPlayer)
 
-    // Load recent games
-    await loadRecentGames();
+        // Load recent games with pagination
+        await loadRecentGames();
 
-    // Modal functionality for add winrate
-    const addWinrateModal = new bootstrap.Modal(document.getElementById('add-winrate-modal'));
-    document.getElementById('add-winrate-btn').addEventListener('click', async () => {
-        await loadPlayersAndPlaces();
-        addWinrateModal.show();
-    });
+        // Setup modal functionality for add winrate
+        const addWinrateModal = new bootstrap.Modal(document.getElementById('add-winrate-modal'));
 
-    // Add winrate form
-    document.getElementById('add-winrate-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const form = document.getElementById('add-winrate-form');
-        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!winrateFormInitialized) {
+            $('#add-winrate-btn').on('click', async () => {
+                await loadPlayersAndPlaces();
+                addWinrateModal.show();
+            });
 
-        // Show loading
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Adding...';
+            $('#add-winrate-form').on('submit', async (e) => {
+                e.preventDefault();
 
-        try {
-            const playerIds = window.selectedPlayers.map(p => p.id_player);
-            const loserId = document.getElementById('winrate-loser').value;
-            const placeId = document.getElementById('winrate-place').value;
-            const datetime = document.getElementById('winrate-datetime').value;
+                const submitBtn = document.querySelector('#add-winrate-modal button[type="submit"]');
+                if (submitBtn.disabled) return;
 
-            if (playerIds.length === 0 || !loserId || !placeId || !datetime) {
-                alert('Please fill all fields.');
-                return;
-            }
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Adding...';
 
-            if (!playerIds.includes(loserId)) {
-                alert('Loser must be one of the selected players.');
-                return;
-            }
+                try {
+                    const playerIds = window.selectedPlayers.map(p => p.id_player);
+                    const loserId = document.getElementById('winrate-loser').value;
+                    const placeId = document.getElementById('winrate-place').value;
+                    const gameId = document.getElementById('winrate-game').value;
+                    const datetime = document.getElementById('winrate-datetime').value;
 
-            // Get player and place details
-            const players = await fetchData('Player');
-            const places = await fetchData('Place');
-            const place = places.find(p => p.id_place === placeId);
+                    if (playerIds.length === 0) {
+                        alert('Please select at least one player.');
+                        return;
+                    }
+                    if (!loserId) {
+                        alert('Please select the loser.');
+                        return;
+                    }
+                    if (!playerIds.includes(loserId)) {
+                        alert('Loser must be one of the selected players.');
+                        return;
+                    }
+                    if (!placeId) {
+                        alert('Please select a place.');
+                        return;
+                    }
+                    if (!gameId) {
+                        alert('Please select a game.');
+                        return;
+                    }
+                    if (!datetime) {
+                        alert('Please enter date and time.');
+                        return;
+                    }
 
-            if (!place) {
-                alert('Invalid place selected.');
-                return;
-            }
+                    // Get player, place, and game details
+                    const players = await fetchData('Player');
+                    const places = await fetchData('Place');
+                    const games = await fetchData('Game');
+                    const place = places.find(p => p.id_place === placeId);
+                    const game = games.find(g => g.id_game === gameId);
 
-            // Convert datetime to UTC+7
-            const localDate = new Date(datetime);
-            const utcDate = new Date(localDate.getTime() - (localDate.getTimezoneOffset() * 60000));
-            const wibDate = new Date(utcDate.getTime() + (7 * 60 * 60 * 1000)); // Add 7 hours for WIB
-            const dateStr = wibDate.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, '');
+                    if (!place) {
+                        alert('Invalid place selected.');
+                        return;
+                    }
+                    if (!game) {
+                        alert('Invalid game selected.');
+                        return;
+                    }
 
-            // Insert data for each player
-            for (const playerId of playerIds) {
-                const player = players.find(p => p.id_player === playerId);
-                if (!player) continue;
+                    const wibDate = new Date(datetime);
+                    const dateStr = `${wibDate.getFullYear()}-${String(wibDate.getMonth() + 1).padStart(2, '0')}-${String(wibDate.getDate()).padStart(2, '0')} ${String(wibDate.getHours()).padStart(2, '0')}:${String(wibDate.getMinutes()).padStart(2, '0')}:${String(wibDate.getSeconds()).padStart(2, '0')}`;
 
-                const lose = (playerId === loserId) ? 1 : 0;
+                    for (const playerId of playerIds) {
+                        const player = players.find(p => p.id_player === playerId);
+                        if (!player) continue;
 
-                const newData = {
-                    name_player: player.name,
-                    name_place: place.name,
-                    lose: lose,
-                    date: dateStr,
-                    id_place: placeId,
-                    id_player: playerId
-                };
+                        const lose = (playerId === loserId) ? 1 : 0;
 
-                const result = await insertData('Data', newData);
-                if (!result) {
-                    console.error('Failed to add winrate for player:', player.name);
-                    alert('Failed to add winrate for some players. Please try again.');
-                    return;
+                        const newData = {
+                            name_player: player.name,
+                            name_place: place.name,
+                            lose: lose,
+                            date: dateStr,
+                            id_place: placeId,
+                            id_player: playerId,
+                            name_game: game.name_game
+                        };
+
+                        const result = await insertData('Data', newData);
+                        if (!result) {
+                            console.error('Failed to add winrate for player:', player.name);
+                            alert('Failed to add winrate for some players. Please try again.');
+                            return;
+                        }
+                    }
+
+                    console.log('Winrate added successfully');
+                    document.getElementById('add-winrate-form').reset();
+                    addWinrateModal.hide();
+                    await loadDashboardContent();
+                } catch (error) {
+                    console.error('Error adding winrate:', error);
+                    alert('Error adding winrate. Please try again.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add Winrate';
                 }
-            }
+            });
 
-            console.log('Winrate added successfully');
-            document.getElementById('add-winrate-form').reset();
-            addWinrateModal.hide();
-            await loadBestPlayer();
-            await loadRecentGames();
-        } catch (error) {
-            console.error('Error adding winrate:', error);
-            alert('Error adding winrate. Please try again.');
-        } finally {
-            // Hide loading
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Add Winrate';
+            winrateFormInitialized = true; // Prevent re-initialization
         }
-    });
-});
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        $('#overall-win-rate').text('Error loading data');
+    }
+};
 
-async function loadBestPlayer() {
+// DIUBAH: Tambahkan "window."
+window.loadBestPlayer = async function() {
     try {
         const data = await fetchData('Data');
         const players = await fetchData('Player');
 
-        // Calculate win rates for each player
         const playerStats = {};
         players.forEach(player => {
-            playerStats[player.id_player] = { name: player.name, wins: 0, total: 0 };
+            playerStats[player.id_player] = { name: player.name, wins: 0, losses: 0, points: 0 };
         });
 
         data.forEach(game => {
             if (playerStats[game.id_player]) {
-                playerStats[game.id_player].total++;
                 if (game.lose === '0' || game.lose === 0) {
                     playerStats[game.id_player].wins++;
+                    playerStats[game.id_player].points += 3; 
+                } else {
+                    playerStats[game.id_player].losses++;
                 }
             }
         });
 
-        // Find the player with the highest win rate
-        let bestPlayer = null;
-        let highestWinRate = -1;
-        Object.values(playerStats).forEach(stat => {
-            if (stat.total > 0) {
-                const winRate = stat.wins / stat.total;
-                if (winRate > highestWinRate) {
-                    highestWinRate = winRate;
-                    bestPlayer = stat;
-                }
-            }
+        const leaderboard = Object.values(playerStats).map(stat => {
+            const total = stat.wins + stat.losses;
+            const winrate = total > 0 ? (stat.wins / total) * 100 : 0;
+            return {
+                ...stat,
+                total,
+                winrate
+            };
         });
 
-        if (bestPlayer) {
-            const winRatePercent = (highestWinRate * 100).toFixed(2);
-            document.getElementById('best-player').textContent = `${bestPlayer.name} - ${winRatePercent}% (${bestPlayer.wins} wins out of ${bestPlayer.total} games)`;
+        leaderboard.sort((a, b) => {
+            if (b.points !== a.points) {
+                return b.points - a.points;
+            }
+            return b.winrate - a.winrate;
+        });
+
+        const tbody = document.querySelector('#leaderboard-table tbody');
+        tbody.innerHTML = '';
+
+        leaderboard.forEach((player, index) => {
+            const rank = index + 1;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${rank}</td>
+                <td>${player.name}</td>
+                <td>${player.points}</td>
+                <td>${player.wins}</td>
+                <td>${player.losses}</td>
+                <td>${player.winrate.toFixed(2)}%</td>
+                <td>${player.total}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        let worstPlayer = null;
+        if (leaderboard.length > 0) {
+            worstPlayer = leaderboard[leaderboard.length - 1];
+            const lowestPoints = worstPlayer.points;
+            const tiedPlayers = leaderboard.filter(p => p.points === lowestPoints);
+            if (tiedPlayers.length > 1) {
+                tiedPlayers.sort((a, b) => b.losses - a.losses);
+                worstPlayer = tiedPlayers[0];
+            }
+        }
+
+        if (worstPlayer) {
+            document.getElementById('worst-player').textContent = `${worstPlayer.name} - ${worstPlayer.points} points (${worstPlayer.losses} losses out of ${worstPlayer.total} games)`;
         } else {
-            document.getElementById('best-player').textContent = 'No data available';
+            document.getElementById('worst-player').textContent = 'No data available';
         }
     } catch (error) {
-        console.error('Error loading best player:', error);
-        document.getElementById('best-player').textContent = 'Error loading data';
+        console.error('Error loading leaderboard:', error);
+        document.getElementById('worst-player').textContent = 'Error loading data';
     }
 }
 
-async function loadRecentGames(page = 1, limit = 10) {
+// DIUBAH: Tambahkan "window."
+window.loadRecentGames = async function(page = 1, limit = 10) {
     console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}`);
     try {
         console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}`);
         const data = await fetchData('Data');
         const players = await fetchData('Player');
         const places = await fetchData('Place');
+        const games = await fetchData('Game');
 
-        // Sort data by date descending (most recent first)
         const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // Calculate pagination
         const totalGames = sortedData.length;
         const totalPages = Math.ceil(totalGames / limit);
         const startIndex = (page - 1) * limit;
@@ -178,29 +233,42 @@ async function loadRecentGames(page = 1, limit = 10) {
         paginatedGames.forEach(game => {
             const player = players.find(p => p.id_player === game.id_player);
             const place = places.find(p => p.id_place === game.id_place);
+            const gameType = games.find(g => g.name_game === game.name_game);
             const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
 
-            // Display the database time as-is, without timezone conversion
-            const dateParts = game.date.split(' ');
-            const dateStr = dateParts[0]; // YYYY-MM-DD
-            const timeStr = dateParts[1]; // HH:MM:SS
+            let formattedDate = 'Unknown';
+            if (game.date) {
+                try {
+                    const dateMatch = game.date.match(/(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})/);
+                    if (!dateMatch) {
+                        console.warn('Invalid date format for game:', game.date);
+                        formattedDate = 'Invalid Date';
+                    } else {
+                        const dateStr = dateMatch[1]; 
+                        const timeStr = dateMatch[2]; 
 
-            const [year, month, day] = dateStr.split('-').map(Number);
-            const [hour, minute, second] = timeStr.split(':').map(Number);
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        const [hour, minute, second] = timeStr.split(':').map(Number);
 
-            const formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}, ${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}.${String(second).padStart(2, '0')}`;
+                        formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}, ${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}.${String(second).padStart(2, '0')}`;
+                    }
+                } catch (error) {
+                    console.error('Error parsing date for game:', game, error);
+                    formattedDate = 'Invalid Date';
+                }
+            }
 
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${formattedDate}</td>
                 <td>${player ? player.name : 'Unknown'}</td>
                 <td>${place ? place.name : 'Unknown'}</td>
+                <td>${gameType ? gameType.name_game : 'Unknown'}</td>
                 <td>${result}</td>
             `;
             tbody.appendChild(row);
         });
 
-        // Render pagination
         renderRecentGamesPagination(totalPages, page);
         console.log(`[Pagination] Successfully rendered ${paginatedGames.length} games for page ${page}`);
     } catch (error) {
@@ -208,23 +276,25 @@ async function loadRecentGames(page = 1, limit = 10) {
     }
 }
 
-async function loadPlayersAndPlaces() {
+// DIUBAH: Tambahkan "window."
+window.loadPlayersAndPlaces = async function() {
     try {
         const players = await fetchData('Player');
         const places = await fetchData('Place');
+        const games = await fetchData('Game');
 
         const playerSelect = document.getElementById('winrate-players');
         const loserSelect = document.getElementById('winrate-loser');
         const placeSelect = document.getElementById('winrate-place');
+        const gameSelect = document.getElementById('winrate-game');
         const selectedPlayersDiv = document.getElementById('selected-players');
 
-        // Clear existing options
         playerSelect.innerHTML = '<option value="">Select Player</option>';
         loserSelect.innerHTML = '<option value="">Select Loser</option>';
         placeSelect.innerHTML = '<option value="">Select Place</option>';
+        gameSelect.innerHTML = '<option value="">Select Game</option>';
         selectedPlayersDiv.innerHTML = '';
 
-        // Populate player options
         players.forEach(player => {
             const option = document.createElement('option');
             option.value = player.id_player;
@@ -232,7 +302,6 @@ async function loadPlayersAndPlaces() {
             playerSelect.appendChild(option);
         });
 
-        // Populate place options
         places.forEach(place => {
             const option = document.createElement('option');
             option.value = place.id_place;
@@ -240,15 +309,19 @@ async function loadPlayersAndPlaces() {
             placeSelect.appendChild(option);
         });
 
-        // Set default datetime to now
+        games.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.id_game;
+            option.textContent = game.name_game;
+            gameSelect.appendChild(option);
+        });
+
         const now = new Date();
         const localDatetime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
         document.getElementById('winrate-datetime').value = localDatetime;
 
-        // Selected players array
         let selectedPlayers = [];
 
-        // Function to update selected players display
         function updateSelectedPlayersDisplay() {
             selectedPlayersDiv.innerHTML = '';
             selectedPlayers.forEach(player => {
@@ -260,7 +333,6 @@ async function loadPlayersAndPlaces() {
                 selectedPlayersDiv.appendChild(playerDiv);
             });
 
-            // Update loser options
             loserSelect.innerHTML = '<option value="">Select Loser</option>';
             selectedPlayers.forEach(player => {
                 const option = document.createElement('option');
@@ -270,7 +342,6 @@ async function loadPlayersAndPlaces() {
             });
         }
 
-        // Add player on select
         playerSelect.addEventListener('change', () => {
             const selectedValue = playerSelect.value;
             if (selectedValue && !selectedPlayers.find(p => p.id_player === selectedValue)) {
@@ -283,7 +354,6 @@ async function loadPlayersAndPlaces() {
             playerSelect.value = '';
         });
 
-        // Remove player on button click
         selectedPlayersDiv.addEventListener('click', (e) => {
             if (e.target.classList.contains('btn-close')) {
                 const playerId = e.target.getAttribute('data-player-id');
@@ -292,14 +362,14 @@ async function loadPlayersAndPlaces() {
             }
         });
 
-        // Store selected players for form submission
         window.selectedPlayers = selectedPlayers;
     } catch (error) {
         console.error('Error loading players and places:', error);
     }
 }
 
-function renderRecentGamesPagination(totalPages, currentPage) {
+// DIUBAH: Tambahkan "window."
+window.renderRecentGamesPagination = function(totalPages, currentPage) {
     console.log(`[PAGINATION DEBUG] renderRecentGamesPagination called with totalPages=${totalPages}, currentPage=${currentPage}`);
     const paginationContainer = document.getElementById('recent-games-pagination');
     if (!paginationContainer) {
@@ -315,13 +385,11 @@ function renderRecentGamesPagination(totalPages, currentPage) {
 
     console.log(`[Pagination] Rendering pagination - Total pages: ${totalPages}, Current page: ${currentPage}`);
 
-    // Previous button
     const prevLi = document.createElement('li');
     prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
     prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage - 1})">Previous</a>`;
     paginationContainer.appendChild(prevLi);
 
-    // Page numbers
     for (let i = 1; i <= totalPages; i++) {
         const pageLi = document.createElement('li');
         pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
@@ -329,7 +397,6 @@ function renderRecentGamesPagination(totalPages, currentPage) {
         paginationContainer.appendChild(pageLi);
     }
 
-    // Next button
     const nextLi = document.createElement('li');
     nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
     nextLi.innerHTML = `<a class="page-link" href="#" onclick="changeRecentGamesPage(${currentPage + 1})">Next</a>`;
@@ -338,7 +405,7 @@ function renderRecentGamesPagination(totalPages, currentPage) {
     console.log('[Pagination] Pagination rendered successfully');
 }
 
-function changeRecentGamesPage(page) {
+window.changeRecentGamesPage = (page) => {
     console.log(`[PAGINATION DEBUG] changeRecentGamesPage called with page=${page}`);
     console.log(`[Pagination] Changing to page ${page}`);
     loadRecentGames(page);

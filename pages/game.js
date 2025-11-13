@@ -1,21 +1,8 @@
 // game.js - Game management
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Game page loaded');
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    if (!loggedInUser) {
-        console.log('No logged in user, redirecting to login');
-        window.location.href = '../index.html';
-        return;
-    }
-    console.log('User logged in:', loggedInUser);
 
-    // Logout functionality
-    document.getElementById('logout').addEventListener('click', () => {
-        console.log('Logout clicked');
-        localStorage.removeItem('loggedInUser');
-        window.location.href = '../index.html';
-    });
-
+// Global function to load game content
+window.loadGameContent = async () => {
+    console.log('Loading game content');
     // Load games
     await loadGames();
 
@@ -24,9 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('add-game-btn').addEventListener('click', () => {
         modal.show();
     });
-
-    // Delete confirmation modal
-    const deleteModal = new bootstrap.Modal(document.getElementById('delete-game-modal'));
 
     // Add game form
     document.getElementById('game-form').addEventListener('submit', async (e) => {
@@ -68,12 +52,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.disabled = false;
         }
     });
-});
 
-let currentGamePage = 1;
-const gamesPerPage = 10;
+    // Attach edit and delete functions globally
+    window.editGame = editGame;
+    window.deleteGame = deleteGame;
+};
 
-async function loadGames(page = 1) {
+var currentGamePage = 1;
+var gamesPerPage = 10; // DIUBAH
+
+// DIUBAH: Tambahkan "window."
+window.loadGames = async function(page = 1) {
     try {
         const games = await fetchData('Game');
 
@@ -110,7 +99,8 @@ async function loadGames(page = 1) {
     }
 }
 
-function renderGamePagination(totalPages, currentPage) {
+// DIUBAH: Tambahkan "window."
+window.renderGamePagination = function(totalPages, currentPage) {
     const paginationContainer = document.getElementById('game-pagination');
     paginationContainer.innerHTML = '';
 
@@ -137,12 +127,12 @@ function renderGamePagination(totalPages, currentPage) {
     paginationContainer.appendChild(nextLi);
 }
 
-function changeGamePage(page) {
+window.changeGamePage = (page) => {
     currentGamePage = page;
     loadGames(page);
 }
 
-async function deleteGame(id) {
+window.deleteGame = async (id) => {
     console.log(`Deleting game with ID: ${id}`);
     // Open delete confirmation modal using Bootstrap
     const deleteModal = new bootstrap.Modal(document.getElementById('delete-game-modal'));
@@ -178,7 +168,7 @@ async function deleteGame(id) {
     };
 }
 
-async function editGame(id) {
+window.editGame = async (id) => {
     console.log(`Editing game with ID: ${id}`);
     // Open edit modal and populate fields using Bootstrap
     const editModal = new bootstrap.Modal(document.getElementById('edit-game-modal'));
