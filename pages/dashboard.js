@@ -464,8 +464,10 @@ window.renderRecentGamesPagination = function(totalPages, currentPage) {
     console.log('[Pagination] Pagination rendered successfully');
 }
 
-window.changeRecentGamesPage = (page) => {
+window.changeRecentGamesPage = async (page) => {
     console.log(`[PAGINATION DEBUG] changeRecentGamesPage called with page=${page}`);
     console.log(`[Pagination] Changing to page ${page}`);
-    loadRecentGames(page);
+    const scrollY = window.scrollY;
+    await loadRecentGames(page);
+    window.scrollTo(0, scrollY);
 }
