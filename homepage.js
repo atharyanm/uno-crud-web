@@ -53,7 +53,6 @@ $(document).ready(function() {
     $('#sidebar-toggle').on('click', function() {
         const sidebar = $('#sidebar');
         const main = $('main');
-        const icon = $(this).find('i');
         const windowWidth = $(window).width();
 
         if (windowWidth >= 768) {
@@ -62,13 +61,11 @@ $(document).ready(function() {
                 // Show sidebar
                 sidebar.removeClass('d-none').css('top', $('.navbar').outerHeight() + 'px');
                 main.removeClass('main-hidden');
-                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-times');
                 $(this).attr('title', 'Close sidebar');
             } else {
                 // Hide sidebar
                 sidebar.addClass('d-none').css('top', '0px');
                 main.addClass('main-hidden');
-                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
                 $(this).attr('title', 'Open sidebar');
             }
         } else {
@@ -77,13 +74,11 @@ $(document).ready(function() {
                 // Hide sidebar
                 sidebar.removeClass('show').addClass('hidden');
                 main.removeClass('main-shifted');
-                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
                 $(this).attr('title', 'Open sidebar');
             } else {
                 // Show sidebar
                 sidebar.removeClass('hidden').addClass('show');
                 main.addClass('main-shifted');
-                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-times');
                 $(this).attr('title', 'Close sidebar');
             }
         }

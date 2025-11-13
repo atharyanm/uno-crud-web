@@ -2,10 +2,25 @@
     <div class="row">
         <div class="col-12">
             <div class="row g-3">
-                <div class="col-lg-8">
-                    <div class="card h-100">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body d-flex align-items-center justify-content-center">
+                            <button type="button" class="btn btn-primary btn-lg w-100" id="add-winrate-btn">
+                                <i class="fas fa-plus me-2"></i>Add Winrate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Player Leaderboard</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">Player Leaderboard</h5>
+                                <select class="form-select w-auto" id="leaderboard-game-filter">
+                                    <option value="all">All Games</option>
+                                    <!-- Game options will be populated by JavaScript -->
+                                </select>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-striped" id="leaderboard-table">
                                     <thead>
@@ -25,20 +40,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="card h-100">
+                <div class="col-12">
+                    <div class="card">
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">Worst Player Ranking</h5>
-                            <p class="card-text flex-grow-1 d-flex align-items-center" id="worst-player">Loading...</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex align-items-center justify-content-center">
-                            <button type="button" class="btn btn-primary btn-lg w-100" id="add-winrate-btn">
-                                <i class="fas fa-plus me-2"></i>Add Winrate
-                            </button>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">Best & Worst Player Ranking</h5>
+                                <select class="form-select w-auto" id="ranking-game-filter">
+                                    <option value="all">All Games</option>
+                                    <!-- Game options will be populated by JavaScript -->
+                                </select>
+                            </div>
+                            <p class="card-text flex-grow-1 d-flex align-items-center" id="best-worst-player">Loading...</p>
                         </div>
                     </div>
                 </div>

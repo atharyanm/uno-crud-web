@@ -129,21 +129,54 @@ window.loadDashboardContent = async () => {
 };
 
 // DIUBAH: Tambahkan "window."
-window.loadBestPlayer = async function() {
+window.loadBestPlayer = async function(gameFilter = 'all') {
     try {
         const data = await fetchData('Data');
         const players = await fetchData('Player');
+        const games = await fetchData('Game');
+
+        // Populate game filter dropdowns
+        const leaderboardFilter = document.getElementById('leaderboard-game-filter');
+        const rankingFilter = document.getElementById('ranking-game-filter');
+
+        // Clear existing options except "All Games"
+        while (leaderboardFilter.children.length > 1) {
+            leaderboardFilter.removeChild(leaderboardFilter.lastChild);
+        }
+        while (rankingFilter.children.length > 1) {
+            rankingFilter.removeChild(rankingFilter.lastChild);
+        }
+
+        // Add game options
+        games.forEach(game => {
+            const option1 = document.createElement('option');
+            option1.value = game.id_game;
+            option1.textContent = game.name_game;
+            leaderboardFilter.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = game.id_game;
+            option2.textContent = game.name_game;
+            rankingFilter.appendChild(option2);
+        });
+
+        // Set current filter values
+        leaderboardFilter.value = gameFilter;
+        rankingFilter.value = gameFilter;
+
+        // Filter data based on selected game
+        const filteredData = gameFilter === 'all' ? data : data.filter(game => game.name_game === games.find(g => g.id_game === gameFilter)?.name_game);
 
         const playerStats = {};
         players.forEach(player => {
             playerStats[player.id_player] = { name: player.name, wins: 0, losses: 0, points: 0 };
         });
 
-        data.forEach(game => {
+        filteredData.forEach(game => {
             if (playerStats[game.id_player]) {
                 if (game.lose === '0' || game.lose === 0) {
                     playerStats[game.id_player].wins++;
-                    playerStats[game.id_player].points += 3; 
+                    playerStats[game.id_player].points += 3;
                 } else {
                     playerStats[game.id_player].losses++;
                 }
@@ -185,9 +218,14 @@ window.loadBestPlayer = async function() {
             tbody.appendChild(row);
         });
 
+        // Update best and worst player display
+        let bestPlayer = null;
         let worstPlayer = null;
         if (leaderboard.length > 0) {
+            bestPlayer = leaderboard[0];
             worstPlayer = leaderboard[leaderboard.length - 1];
+
+            // Handle ties for worst player
             const lowestPoints = worstPlayer.points;
             const tiedPlayers = leaderboard.filter(p => p.points === lowestPoints);
             if (tiedPlayers.length > 1) {
@@ -196,14 +234,25 @@ window.loadBestPlayer = async function() {
             }
         }
 
-        if (worstPlayer) {
-            document.getElementById('worst-player').textContent = `${worstPlayer.name} - ${worstPlayer.points} points (${worstPlayer.losses} losses out of ${worstPlayer.total} games)`;
+        const displayElement = document.getElementById('best-worst-player');
+        if (bestPlayer && worstPlayer) {
+            displayElement.textContent = `Best: ${bestPlayer.name} - ${bestPlayer.points} pts | Worst: ${worstPlayer.name} - ${worstPlayer.points} pts`;
         } else {
-            document.getElementById('worst-player').textContent = 'No data available';
+            displayElement.textContent = 'No data available';
         }
+
+        // Add event listeners for filters
+        leaderboardFilter.addEventListener('change', () => {
+            loadBestPlayer(leaderboardFilter.value);
+        });
+
+        rankingFilter.addEventListener('change', () => {
+            loadBestPlayer(rankingFilter.value);
+        });
+
     } catch (error) {
         console.error('Error loading leaderboard:', error);
-        document.getElementById('worst-player').textContent = 'Error loading data';
+        document.getElementById('best-worst-player').textContent = 'Error loading data';
     }
 }
 

@@ -1,0 +1,5 @@
+- [x] Modifikasi tabel klasemen: Tambahkan dropdown select untuk kategori game (default All Games)
+- [x] Modifikasi card Worst Player: Ubah menjadi Best & Worst Player dengan dropdown game
+  - [x] Tambahkan dropdown select untuk game (default All Games)
+  - [x] Tampilkan Best Player dan Worst Player
+  - [x] Format: "Best: [Nama] - [Points] pts | Worst: [Nama] - [Points] pts"
