@@ -36,6 +36,9 @@ $(document).ready(function() {
         $('.nav-link').removeClass('active');
         $(this).addClass('active');
 
+        // Update navbar current page display
+        updateNavbarCurrentPage(page);
+
         // Load page content
         loadPage(page);
 
@@ -57,16 +60,14 @@ $(document).ready(function() {
             // Desktop/Tablet behavior: hide/show sidebar with content shift
             if (sidebar.hasClass('d-none')) {
                 // Show sidebar
-                sidebar.removeClass('d-none');
+                sidebar.removeClass('d-none').css('top', $('.navbar').outerHeight() + 'px');
                 main.removeClass('main-hidden');
-                updateToggleButtonPosition(windowWidth, false);
-                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-times');
                 $(this).attr('title', 'Close sidebar');
             } else {
                 // Hide sidebar
-                sidebar.addClass('d-none');
+                sidebar.addClass('d-none').css('top', '0px');
                 main.addClass('main-hidden');
-                updateToggleButtonPosition(windowWidth, true);
                 icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
                 $(this).attr('title', 'Open sidebar');
             }
@@ -76,15 +77,13 @@ $(document).ready(function() {
                 // Hide sidebar
                 sidebar.removeClass('show').addClass('hidden');
                 main.removeClass('main-shifted');
-                updateToggleButtonPosition(windowWidth, true);
                 icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
                 $(this).attr('title', 'Open sidebar');
             } else {
                 // Show sidebar
                 sidebar.removeClass('hidden').addClass('show');
                 main.addClass('main-shifted');
-                updateToggleButtonPosition(windowWidth, false);
-                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-bars');
+                icon.removeClass('fa-chevron-left fa-chevron-right fa-bars fa-times').addClass('fa-times');
                 $(this).attr('title', 'Close sidebar');
             }
         }
@@ -143,12 +142,23 @@ $(document).ready(function() {
             // Mobile: sidebar is hidden by default (overlay mode)
             sidebar.removeClass('show d-none');
             main.removeClass('main-hidden main-shifted');
-            updateToggleButtonPosition(windowWidth, true);
+            // updateToggleButtonPosition(windowWidth, true); // Commented out to prevent repositioning issues on mobile
         } else {
-            // Desktop/Tablet: sidebar is shown by default
-            sidebar.removeClass('d-none');
-            main.removeClass('main-hidden');
-            updateToggleButtonPosition(windowWidth, false);
+            // Desktop/Tablet: sidebar is hidden by default
+            sidebar.addClass('d-none');
+            main.addClass('main-hidden');
+            // Ensure button is in navbar when sidebar is hidden
+            if ($('#sidebar-toggle').parent().is('#sidebar')) {
+                $('#sidebar-toggle').detach().prependTo('.navbar .d-flex.align-items-center.me-auto');
+                // Reset only necessary positioning when moving to navbar, DO NOT touch top/left/transform
+                $('#sidebar-toggle').css({
+                    'position': 'relative',
+                    'left': '',
+                    'top': '',
+                    'transform': '',
+                });
+            }
+            // updateToggleButtonPosition(windowWidth, true); // Commented out to prevent pulling button to top
         }
     }
 
@@ -177,11 +187,11 @@ $(document).ready(function() {
 function loadPage(page) {
     if (checkSession()) return;
     currentPage = page;
-    
+
     // 1. Muat konten HTML (dengan parameter versi)
     $.get(`pages/${page}.html?v=${APP_VERSION}`, function(data) {
         $('#page-content').html(data);
-        
+
         // 2. Muat file JS yang sesuai (dengan parameter versi)
         $.getScript(`pages/${page}.js?v=${APP_VERSION}`, function() {
             // 3. Jalankan fungsi load spesifik halaman (mis: loadDashboardContent)
@@ -195,6 +205,40 @@ function loadPage(page) {
     }).fail(function() {
         $('#page-content').html('<p>Error loading page content.</p>');
     });
+}
+
+function updateNavbarCurrentPage(page) {
+    const pageData = {
+        dashboard: { icon: 'fas fa-tachometer-alt', text: 'Dashboard' },
+        player: { icon: 'fas fa-users', text: 'Players' },
+        place: { icon: 'fas fa-map-marker-alt', text: 'Places' },
+        user: { icon: 'fas fa-user-cog', text: 'Users' },
+        game: { icon: 'fas fa-gamepad', text: 'Games' }
+    };
+
+    const data = pageData[page];
+    if (data) {
+        $('#current-page-icon').attr('class', data.icon + ' me-2');
+        $('#current-page-text').text(data.text);
+    }
+
+    // Update responsiveness after setting page
+    updateNavbarResponsiveness();
+}
+
+function updateNavbarResponsiveness() {
+    const windowWidth = $(window).width();
+    const iconElement = $('#current-page-icon');
+    const textElement = $('#current-page-text');
+
+    // Always show text, adjust icon spacing for mobile
+    if (windowWidth < 768) {
+        // Mobile: adjust icon size if needed
+        iconElement.removeClass('me-2').addClass('me-1');
+    } else {
+        // Desktop: standard spacing
+        iconElement.removeClass('me-1').addClass('me-2');
+    }
 }
 
 async function loadDashboardContent() {

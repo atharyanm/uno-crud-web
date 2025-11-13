@@ -24,8 +24,77 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* Responsive adjustments for homepage */
-@media (max-width: 768px) {
+/* Sidebar styles */
+.sidebar {
+    width: 250px;
+    background-color: #343a40;
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+/* Removed conflicting rule for sidebar toggle button */
+
+/* Sidebar toggle button mobile visibility */
+.sidebar-toggle-mobile {
+    display: block !important;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+/* Main content adjustments */
+main {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+
+#main-content {
+    margin-top: 80px;
+}
+
+.main-hidden {
+    margin-left: 0;
+}
+
+/* Fixed navbar adjustments */
+.navbar.fixed-top {
+    z-index: 1030;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1023px) {
+    .sidebar {
+        width: 180px;
+    }
+
+    main {
+        margin-left: 180px;
+    }
+}
+
+@media (max-width: 767px) {
+    .sidebar {
+        width: 250px;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .sidebar.hidden {
+        transform: translateX(-100%);
+    }
+
+    main {
+        margin-left: 0;
+        margin-top: 60px;
+    }
+
     #win-rate-summary, #recent-games {
         padding: 15px;
         margin-bottom: 15px;
@@ -45,6 +114,10 @@
 }
 
 @media (max-width: 480px) {
+    main {
+        margin-top: 55px;
+    }
+
     #win-rate-summary, #recent-games {
         padding: 10px;
         margin-bottom: 10px;
