@@ -129,11 +129,38 @@ window.loadDashboardContent = async () => {
 };
 
 // DIUBAH: Tambahkan "window."
-window.loadBestPlayer = async function(gameFilter = 'all') {
+window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toString(), gameFilter = 'all') {
     try {
         const data = await fetchData('Data');
         const players = await fetchData('Player');
         const games = await fetchData('Game');
+
+        // Populate year filter dropdowns
+        const leaderboardYearFilter = document.getElementById('leaderboard-year-filter');
+        const rankingYearFilter = document.getElementById('ranking-year-filter');
+
+        // Clear existing options
+        leaderboardYearFilter.innerHTML = '';
+        rankingYearFilter.innerHTML = '';
+
+        // Get unique years from data
+        const yearsInData = [...new Set(data.map(d => new Date(d.date).getFullYear()))].sort((a, b) => a - b);
+        const currentYear = new Date().getFullYear();
+        const minYear = yearsInData.length > 0 ? Math.min(...yearsInData) : currentYear;
+        const maxYear = Math.max(currentYear, yearsInData.length > 0 ? Math.max(...yearsInData) : currentYear);
+
+        // Add year options from min year to max year
+        for (let year = minYear; year <= maxYear; year++) {
+            const option1 = document.createElement('option');
+            option1.value = year.toString();
+            option1.textContent = year.toString();
+            leaderboardYearFilter.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = year.toString();
+            option2.textContent = year.toString();
+            rankingYearFilter.appendChild(option2);
+        }
 
         // Populate game filter dropdowns
         const leaderboardFilter = document.getElementById('leaderboard-game-filter');
@@ -161,11 +188,22 @@ window.loadBestPlayer = async function(gameFilter = 'all') {
         });
 
         // Set current filter values
+        leaderboardYearFilter.value = yearFilter;
+        rankingYearFilter.value = yearFilter;
         leaderboardFilter.value = gameFilter;
         rankingFilter.value = gameFilter;
 
-        // Filter data based on selected game
-        const filteredData = gameFilter === 'all' ? data : data.filter(game => game.name_game === games.find(g => g.id_game === gameFilter)?.name_game);
+        // Filter data based on selected year and game
+        let filteredData = data;
+        if (yearFilter !== 'all') {
+            filteredData = filteredData.filter(game => {
+                const gameYear = new Date(game.date).getFullYear().toString();
+                return gameYear === yearFilter;
+            });
+        }
+        if (gameFilter !== 'all') {
+            filteredData = filteredData.filter(game => game.name_game === games.find(g => g.id_game === gameFilter)?.name_game);
+        }
 
         const playerStats = {};
         players.forEach(player => {
@@ -234,20 +272,51 @@ window.loadBestPlayer = async function(gameFilter = 'all') {
             }
         }
 
-        const displayElement = document.getElementById('best-worst-player');
-        if (bestPlayer && worstPlayer) {
-            displayElement.textContent = `Best: ${bestPlayer.name} - ${bestPlayer.points} pts | Worst: ${worstPlayer.name} - ${worstPlayer.points} pts`;
+        // Update best player card
+        if (bestPlayer) {
+            document.getElementById('best-player-name').textContent = bestPlayer.name;
+            document.getElementById('best-player-wins').textContent = bestPlayer.wins;
+            document.getElementById('best-player-losses').textContent = bestPlayer.losses;
+            document.getElementById('best-player-matches').textContent = bestPlayer.total;
+            document.getElementById('best-player-points').textContent = bestPlayer.points;
         } else {
-            displayElement.textContent = 'No data available';
+            document.getElementById('best-player-name').textContent = 'No data';
+            document.getElementById('best-player-wins').textContent = '-';
+            document.getElementById('best-player-losses').textContent = '-';
+            document.getElementById('best-player-matches').textContent = '-';
+            document.getElementById('best-player-points').textContent = '-';
+        }
+
+        // Update worst player card
+        if (worstPlayer) {
+            document.getElementById('worst-player-name').textContent = worstPlayer.name;
+            document.getElementById('worst-player-wins').textContent = worstPlayer.wins;
+            document.getElementById('worst-player-losses').textContent = worstPlayer.losses;
+            document.getElementById('worst-player-matches').textContent = worstPlayer.total;
+            document.getElementById('worst-player-points').textContent = worstPlayer.points;
+        } else {
+            document.getElementById('worst-player-name').textContent = 'No data';
+            document.getElementById('worst-player-wins').textContent = '-';
+            document.getElementById('worst-player-losses').textContent = '-';
+            document.getElementById('worst-player-matches').textContent = '-';
+            document.getElementById('worst-player-points').textContent = '-';
         }
 
         // Add event listeners for filters
+        leaderboardYearFilter.addEventListener('change', () => {
+            loadBestPlayer(leaderboardYearFilter.value, leaderboardFilter.value);
+        });
+
         leaderboardFilter.addEventListener('change', () => {
-            loadBestPlayer(leaderboardFilter.value);
+            loadBestPlayer(leaderboardYearFilter.value, leaderboardFilter.value);
+        });
+
+        rankingYearFilter.addEventListener('change', () => {
+            loadBestPlayer(rankingYearFilter.value, rankingFilter.value);
         });
 
         rankingFilter.addEventListener('change', () => {
-            loadBestPlayer(rankingFilter.value);
+            loadBestPlayer(rankingYearFilter.value, rankingFilter.value);
         });
 
     } catch (error) {
