@@ -2,6 +2,8 @@
 var winrateFormInitialized = false; // DIUBAH
 var currentRecentGamesPage = 1; // DIUBAH
 var recentGamesPerPage = 10; // DIUBAH
+var currentSearchType = 'place'; // Current search type
+var currentSearchValue = ''; // Current search value
 
 // Global function to load dashboard content
 window.loadDashboardContent = async () => {
@@ -122,6 +124,9 @@ window.loadDashboardContent = async () => {
 
             winrateFormInitialized = true; // Prevent re-initialization
         }
+
+        // Initialize search functionality
+        initializeSearch();
     } catch (error) {
         console.error('Error loading dashboard:', error);
         $('#overall-win-rate').text('Error loading data');
@@ -217,6 +222,7 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
                     playerStats[game.id_player].points += 3;
                 } else {
                     playerStats[game.id_player].losses++;
+                    playerStats[game.id_player].points -= 1;
                 }
             }
         });
@@ -326,16 +332,44 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
 }
 
 // DIUBAH: Tambahkan "window."
-window.loadRecentGames = async function(page = 1, limit = 10) {
-    console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}`);
+window.loadRecentGames = async function(page = 1, limit = 10, searchType = currentSearchType, searchValue = currentSearchValue) {
+    console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}, searchType=${searchType}, searchValue=${searchValue}`);
     try {
-        console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}`);
+        console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}, Search: ${searchType} = ${searchValue}`);
         const data = await fetchData('Data');
         const players = await fetchData('Player');
         const places = await fetchData('Place');
         const games = await fetchData('Game');
 
-        const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        let filteredData = data;
+
+        // Apply search filter
+        if (searchValue && searchValue.trim() !== '') {
+            const trimmedValue = searchValue.trim().toLowerCase();
+            filteredData = data.filter(game => {
+                switch (searchType) {
+                    case 'place':
+                        const place = places.find(p => p.id_place === game.id_place);
+                        return place && place.name.toLowerCase().includes(trimmedValue);
+                    case 'player':
+                        const player = players.find(p => p.id_player === game.id_player);
+                        return player && player.name.toLowerCase().includes(trimmedValue);
+                    case 'date':
+                        if (!game.date) return false;
+                        try {
+                            const gameDate = new Date(game.date).toISOString().split('T')[0]; // YYYY-MM-DD format
+                            return gameDate === trimmedValue;
+                        } catch (error) {
+                            console.error('Error parsing date for filtering:', game.date, error);
+                            return false;
+                        }
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        const sortedData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         const totalGames = sortedData.length;
         const totalPages = Math.ceil(totalGames / limit);
@@ -348,44 +382,52 @@ window.loadRecentGames = async function(page = 1, limit = 10) {
         const tbody = document.querySelector('#recent-games-table tbody');
         tbody.innerHTML = '';
 
-        paginatedGames.forEach(game => {
-            const player = players.find(p => p.id_player === game.id_player);
-            const place = places.find(p => p.id_place === game.id_place);
-            const gameType = games.find(g => g.name_game === game.name_game);
-            const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
-
-            let formattedDate = 'Unknown';
-            if (game.date) {
-                try {
-                    const dateMatch = game.date.match(/(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})/);
-                    if (!dateMatch) {
-                        console.warn('Invalid date format for game:', game.date);
-                        formattedDate = 'Invalid Date';
-                    } else {
-                        const dateStr = dateMatch[1]; 
-                        const timeStr = dateMatch[2]; 
-
-                        const [year, month, day] = dateStr.split('-').map(Number);
-                        const [hour, minute, second] = timeStr.split(':').map(Number);
-
-                        formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}, ${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}.${String(second).padStart(2, '0')}`;
-                    }
-                } catch (error) {
-                    console.error('Error parsing date for game:', game, error);
-                    formattedDate = 'Invalid Date';
-                }
-            }
-
+        if (paginatedGames.length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${formattedDate}</td>
-                <td>${player ? player.name : 'Unknown'}</td>
-                <td>${place ? place.name : 'Unknown'}</td>
-                <td>${gameType ? gameType.name_game : 'Unknown'}</td>
-                <td>${result}</td>
+                <td colspan="5" style="text-align: center;">Doesnt Exist</td>
             `;
             tbody.appendChild(row);
-        });
+        } else {
+            paginatedGames.forEach(game => {
+                const player = players.find(p => p.id_player === game.id_player);
+                const place = places.find(p => p.id_place === game.id_place);
+                const gameType = games.find(g => g.name_game === game.name_game);
+                const result = game.lose === '1' || game.lose === 1 ? 'Lose' : 'Win';
+
+                let formattedDate = 'Unknown';
+                if (game.date) {
+                    try {
+                        const dateMatch = game.date.match(/(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})/);
+                        if (!dateMatch) {
+                            console.warn('Invalid date format for game:', game.date);
+                            formattedDate = 'Invalid Date';
+                        } else {
+                            const dateStr = dateMatch[1]; 
+                            const timeStr = dateMatch[2]; 
+
+                            const [year, month, day] = dateStr.split('-').map(Number);
+                            const [hour, minute, second] = timeStr.split(':').map(Number);
+
+                            formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}, ${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}.${String(second).padStart(2, '0')}`;
+                        }
+                    } catch (error) {
+                        console.error('Error parsing date for game:', game, error);
+                        formattedDate = 'Invalid Date';
+                    }
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${player ? player.name : 'Unknown'}</td>
+                    <td>${place ? place.name : 'Unknown'}</td>
+                    <td>${gameType ? gameType.name_game : 'Unknown'}</td>
+                    <td>${result}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
 
         renderRecentGamesPagination(totalPages, page);
         console.log(`[Pagination] Successfully rendered ${paginatedGames.length} games for page ${page}`);
@@ -539,4 +581,48 @@ window.changeRecentGamesPage = async (page) => {
     const scrollY = window.scrollY;
     await loadRecentGames(page);
     window.scrollTo(0, scrollY);
+}
+
+// Initialize search functionality
+function initializeSearch() {
+    const searchTypeSelect = document.getElementById('search-type');
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+
+    // Function to update input field based on search type
+    function updateInputField() {
+        const selectedType = searchTypeSelect.value;
+        if (selectedType === 'date') {
+            searchInput.type = 'date';
+            searchInput.placeholder = 'Select date';
+        } else {
+            searchInput.type = 'text';
+            searchInput.placeholder = `Enter ${selectedType} name`;
+        }
+    }
+
+    // Initialize input field
+    updateInputField();
+
+    // Event listener for search type change
+    searchTypeSelect.addEventListener('change', updateInputField);
+
+    // Event listener for search button
+    searchBtn.addEventListener('click', async () => {
+        const searchType = searchTypeSelect.value;
+        const searchValue = searchInput.value.trim();
+
+        currentSearchType = searchType;
+        currentSearchValue = searchValue;
+        currentRecentGamesPage = 1; // Reset to first page
+
+        await loadRecentGames(1, recentGamesPerPage, searchType, searchValue);
+    });
+
+    // Allow search on Enter key press
+    searchInput.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+            searchBtn.click();
+        }
+    });
 }

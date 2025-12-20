@@ -1,26 +1,43 @@
 /* styles.css - Custom styles for Sabung Win Rate Calculator */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Helvetica', 'Helvetica Neue', Arial, sans-serif;
     background-color: #f8f9fa;
 }
 
 /* Navbar theme */
 .navbar-theme {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
     border-bottom: 3px solid rgba(255,255,255,0.1) !important;
 }
 
 .navbar-theme .navbar-nav .nav-link {
-    color: rgba(255,255,255,0.8) !important;
+    color: #333 !important;
 }
 
 .navbar-theme .navbar-nav .nav-link:hover {
-    color: white !important;
+    color: #000 !important;
+}
+
+.navbar-theme .navbar-brand {
+    color: #333 !important;
+}
+
+.navbar-theme .navbar-brand:hover {
+    color: #000 !important;
+}
+
+.navbar-theme .navbar-toggler {
+    color: #333 !important;
+    border-color: rgba(51, 51, 51, 0.1) !important;
+}
+
+.navbar-theme .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(51, 51, 51, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 
 /* Sidebar styles */
 .sidebar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
     position: fixed;
     top: 0;
     left: 0;
@@ -38,7 +55,7 @@ body {
 }
 
 .sidebar .nav-link {
-    color: rgba(255,255,255,0.8) !important;
+    color: #333 !important;
     font-weight: 500;
     transition: all 0.3s ease;
     border-radius: 8px;
@@ -46,15 +63,15 @@ body {
 }
 
 .sidebar .nav-link:hover {
-    background-color: rgba(255,255,255,0.1) !important;
-    color: white !important;
+    background-color: rgba(0,0,0,0.1) !important;
+    color: #000 !important;
     transform: translateX(5px);
 }
 
 .sidebar .nav-link.active {
-    background-color: rgba(255,255,255,0.2) !important;
-    color: white !important;
-    border-left: 4px solid #fff;
+    background-color: rgba(0,0,0,0.2) !important;
+    color: #000 !important;
+    border-left: 4px solid #000;
 }
 
 /* Main content styles */
@@ -101,8 +118,8 @@ main.main-hidden {
 }
 
 .table thead th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
+    color: #333;
     border: none;
     font-weight: 600;
     text-transform: uppercase;
@@ -118,7 +135,7 @@ main.main-hidden {
 
 /* Button styles */
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
     border: none;
     border-radius: 25px;
     padding: 10px 30px;
@@ -126,13 +143,15 @@ main.main-hidden {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 218, 185, 0.4);
+    color: #333;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    background: linear-gradient(135deg, #FFFACD 0%, #F0E68C 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 6px 20px rgba(255, 218, 185, 0.6);
+    color: #333;
 }
 
 .btn-warning {
@@ -185,8 +204,8 @@ main.main-hidden {
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
+    color: #333;
     border: none;
     border-radius: 15px 15px 0 0;
 }
@@ -209,8 +228,8 @@ main.main-hidden {
 }
 
 .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: #FFD700;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
 }
 
 .form-label {
@@ -228,8 +247,8 @@ main.main-hidden {
     z-index: 1050;
     width: 30px;
     height: 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
+    color: #333;
     border: none;
     border-radius: 50%;
     display: flex;
@@ -242,8 +261,9 @@ main.main-hidden {
 }
 
 .sidebar-toggle-btn:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    background: linear-gradient(135deg, #FFFACD 0%, #F0E68C 100%);
     transform: translateY(-50%) scale(1.1);
+    color: #333;
 }
 
 /* Sidebar toggle button in navbar */
@@ -456,10 +476,10 @@ main.main-hidden {
 }
 
 .pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: #667eea;
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
+    border-color: #FFDAB9;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(255, 218, 185, 0.4);
 }
 
 .pagination .page-item.disabled .page-link {
@@ -478,12 +498,12 @@ main.main-hidden {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    background: linear-gradient(135deg, #FFFACD 0%, #F0E68C 100%);
 }
 
 /* Custom modal styles for player and user pages */
@@ -524,8 +544,8 @@ main.main-hidden {
 
 .custom-modal .modal-header {
     padding: 15px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
+    color: #333;
     border-radius: 10px 10px 0 0;
 }
 

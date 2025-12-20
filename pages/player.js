@@ -159,9 +159,17 @@ window.deletePlayer = async (id) => {
         confirmContent.style.display = 'none';
 
         try {
+            // First, delete all related Data records
+            const allData = await fetchData('Data');
+            const relatedData = allData.filter(d => d.id_player === id);
+            for (const dataRecord of relatedData) {
+                await deleteData('Data', dataRecord.id);
+            }
+
+            // Then delete the player
             const result = await deleteData('Player', id);
             if (result) {
-                console.log('Player deleted successfully');
+                console.log('Player and related data deleted successfully');
                 deleteModal.hide();
                 await loadPlayers();
             } else {
@@ -203,11 +211,48 @@ window.editPlayer = async (id) => {
             submitBtn.disabled = true;
 
             try {
+                console.log('Starting player update process');
                 const newName = document.getElementById('edit-player-name').value;
                 const newDateJoin = document.getElementById('edit-player-date-join').value;
+                console.log('New name:', newName, 'New date:', newDateJoin);
+
+                // Check if the new name already exists for another player
+                console.log('Checking for duplicate names');
+                try {
+                    const allPlayers = await fetchData('Player');
+                    const duplicatePlayer = allPlayers.find(p => p.name.trim().toLowerCase() === newName.trim().toLowerCase() && p.id_player !== id);
+                    if (duplicatePlayer) {
+                        console.error('Duplicate name found:', duplicatePlayer);
+                        alert(`Player name "${newName}" already exists. Please choose a different name.`);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error fetching players for duplicate check:', error);
+                    alert('Unable to verify name uniqueness. Please try again.');
+                    return;
+                }
+
+                // Update the player
+                console.log('Updating player record');
                 const result = await updateData('Player', id, { name: newName, date_join: newDateJoin });
                 if (result) {
                     console.log('Player updated successfully');
+                    // Update name_player in all related Data records
+                    console.log('Fetching all Data records');
+                    const allData = await fetchData('Data');
+                    const relatedData = allData.filter(d => d.id_player === id);
+                    console.log('Found', relatedData.length, 'related Data records');
+                    for (const dataRecord of relatedData) {
+                        console.log('Updating Data record', dataRecord.id, 'with name_player:', newName);
+                        const updateResult = await updateData('Data', dataRecord.id, { name_player: newName });
+                        if (!updateResult) {
+                            console.error('Failed to update Data record', dataRecord.id);
+                        } else {
+                            console.log('Data record', dataRecord.id, 'updated successfully');
+                        }
+                    }
+
+                    console.log('Player and related data updated successfully');
                     editModal.hide();
                     await loadPlayers();
                 } else {

@@ -1,7 +1,7 @@
 /* login.css */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
     min-height: 100vh;
     margin: 0;
 }
@@ -32,7 +32,7 @@ body {
 
 .welcome-section {
     text-align: center;
-    color: white;
+    color: #333;
     max-width: 500px;
 }
 
@@ -79,14 +79,14 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 224, 0.8) 0%, rgba(255, 218, 185, 0.8) 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     padding: 40px;
-    color: white;
+    color: #333;
 }
 
 .image-overlay h1 {
@@ -129,7 +129,7 @@ body {
 
 .feature-item i {
     font-size: 2rem;
-    color: #fff;
+    color: #333;
 }
 
 .feature-item span {
@@ -169,7 +169,7 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background: linear-gradient(90deg, #FFFFE0, #FFDAB9, #FFFACD, #F0E68C);
     background-size: 400% 400%;
     animation: gradientShift 3s ease infinite;
 }
@@ -308,8 +308,8 @@ body {
 
 .login-btn {
     padding: 15px 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
+    color: #333;
     border: none;
     border-radius: 12px;
     cursor: pointer;
@@ -318,7 +318,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 218, 185, 0.4);
     margin-top: 10px;
     width: 100%;
     display: flex;
@@ -328,9 +328,10 @@ body {
 }
 
 .login-btn:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    background: linear-gradient(135deg, #FFFACD 0%, #F0E68C 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 6px 20px rgba(255, 218, 185, 0.6);
+    color: #333;
 }
 
 .login-btn:active {
