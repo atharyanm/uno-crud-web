@@ -717,7 +717,7 @@ function initializeGenerateReport() {
 
             let playerData = data.filter(d =>
                 d.id_player === playerId &&
-                new Date(d.date).getFullYear().toString() === year
+                (year === 'all' || new Date(d.date).getFullYear().toString() === year)
             );
 
             if (gameId !== 'all') {
@@ -796,7 +796,7 @@ async function populateReportModal() {
 
         // Populate players
         const playerSelect = document.getElementById('report-player');
-        playerSelect.innerHTML = '<option value="">Choose a player...</option>';
+        playerSelect.innerHTML = '<option value="">Choose a player</option>';
         players.forEach(player => {
             const option = document.createElement('option');
             option.value = player.id_player;
@@ -806,7 +806,7 @@ async function populateReportModal() {
 
         // Populate years
         const yearSelect = document.getElementById('report-year');
-        yearSelect.innerHTML = '<option value="">Choose a year...</option>';
+        yearSelect.innerHTML = '<option value="">Choose a year</option>';
         const years = [...new Set(data.map(d => new Date(d.date).getFullYear()))].sort((a, b) => b - a);
         years.forEach(year => {
             const option = document.createElement('option');
@@ -814,6 +814,12 @@ async function populateReportModal() {
             option.textContent = year.toString();
             yearSelect.appendChild(option);
         });
+
+        // Add "All Time" option
+        const allTimeOption = document.createElement('option');
+        allTimeOption.value = 'all';
+        allTimeOption.textContent = 'All Time';
+        yearSelect.appendChild(allTimeOption);
 
         // Populate games
         const gameSelect = document.getElementById('report-game');

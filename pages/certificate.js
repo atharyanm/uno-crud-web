@@ -58,7 +58,8 @@ async function generateGameCertificate(playerId, playerName, year, gameText, ran
   doc.setFontSize(13);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...theme.textMuted);
-  doc.text(`${gameText.toUpperCase()} • SEASON ${year}`, 20, 48);
+  const seasonText = year === 'all' ? 'ALL SEASON' : `SEASON ${year}`;
+  doc.text(`${gameText.toUpperCase()} • ${seasonText}`, 20, 48);
 
   /* ===== PLAYER NAME (FOCUS) ===== */
   doc.setFontSize(30);
