@@ -1,14 +1,14 @@
-# TODO: Add Search Feature to Recent Games Table
+# TODO: Fix Generate Report Button and Add Caching
 
 ## Tasks
-- [ ] Add search inputs to pages/dashboard.html above "Recent Games" heading
-- [ ] Modify loadRecentGames() in pages/dashboard.js to accept and handle search parameters
-- [ ] Implement filtering logic for place, player, and date
-- [ ] Update pagination to work with filtered results
-- [ ] Test search functionality
-
-## Details
-- Combo box with options: Place, Player, Date
-- Dynamic input: textbox for Place/Player, datebox for Date
-- Search button to trigger filtering
-- Filter data before pagination
+- [x] Add jsPDF library to pages/dashboard.html for PDF generation
+- [x] Add event listener for "Generate Report" button to open modal in pages/dashboard.js
+- [x] Add function to populate player, year, and game dropdowns in the modal
+- [x] Add event listener for "Generate PDF" button to create certificate PDF
+- [x] Implement caching for calculation data (leaderboard stats, player data) to improve performance
+- [x] Clear cache on page refresh to ensure fresh data
+- [x] Add error handling for jsPDF library in generatePlayerCertificate function
+- [x] Move certificate generation code to separate file (pages/certificate.js)
+- [ ] Test PDF generation with sample data
+- [ ] Verify certificate format and content
+- [ ] Test caching functionality and performance improvement

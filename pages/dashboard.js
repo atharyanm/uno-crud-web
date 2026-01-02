@@ -5,6 +5,46 @@ var recentGamesPerPage = 10; // DIUBAH
 var currentSearchType = 'place'; // Current search type
 var currentSearchValue = ''; // Current search value
 
+// Cache for performance optimization
+var dataCache = {
+    players: null,
+    games: null,
+    places: null,
+    gameData: null,
+    leaderboard: null,
+    lastUpdated: null
+};
+
+// Cached fetch function
+async function cachedFetchData(table) {
+    const cacheKey = table.toLowerCase();
+    const now = Date.now();
+    const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+
+    if (dataCache[cacheKey] && dataCache.lastUpdated && (now - dataCache.lastUpdated < cacheExpiry)) {
+        console.log(`Using cached data for ${table}`);
+        return dataCache[cacheKey];
+    }
+
+    console.log(`Fetching fresh data for ${table}`);
+    const data = await fetchData(table);
+    dataCache[cacheKey] = data;
+    dataCache.lastUpdated = now;
+    return data;
+}
+
+// Clear cache on page refresh
+window.addEventListener('beforeunload', function() {
+    dataCache = {
+        players: null,
+        games: null,
+        places: null,
+        gameData: null,
+        leaderboard: null,
+        lastUpdated: null
+    };
+});
+
 // Global function to load dashboard content
 window.loadDashboardContent = async () => {
     try {
@@ -127,6 +167,9 @@ window.loadDashboardContent = async () => {
 
         // Initialize search functionality
         initializeSearch();
+
+        // Initialize generate report functionality
+        initializeGenerateReport();
     } catch (error) {
         console.error('Error loading dashboard:', error);
         $('#overall-win-rate').text('Error loading data');
@@ -136,9 +179,9 @@ window.loadDashboardContent = async () => {
 // DIUBAH: Tambahkan "window."
 window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toString(), gameFilter = 'all') {
     try {
-        const data = await fetchData('Data');
-        const players = await fetchData('Player');
-        const games = await fetchData('Game');
+        const data = await cachedFetchData('Data');
+        const players = await cachedFetchData('Player');
+        const games = await cachedFetchData('Game');
 
         // Populate year filter dropdowns
         const leaderboardYearFilter = document.getElementById('leaderboard-year-filter');
@@ -347,10 +390,10 @@ window.loadRecentGames = async function(page = 1, limit = 10, searchType = curre
     console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}, searchType=${searchType}, searchValue=${searchValue}`);
     try {
         console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}, Search: ${searchType} = ${searchValue}`);
-        const data = await fetchData('Data');
-        const players = await fetchData('Player');
-        const places = await fetchData('Place');
-        const games = await fetchData('Game');
+        const data = await cachedFetchData('Data');
+        const players = await cachedFetchData('Player');
+        const places = await cachedFetchData('Place');
+        const games = await cachedFetchData('Game');
 
         let filteredData = data;
 
@@ -450,9 +493,9 @@ window.loadRecentGames = async function(page = 1, limit = 10, searchType = curre
 // DIUBAH: Tambahkan "window."
 window.loadPlayersAndPlaces = async function() {
     try {
-        const players = await fetchData('Player');
-        const places = await fetchData('Place');
-        const games = await fetchData('Game');
+        const players = await cachedFetchData('Player');
+        const places = await cachedFetchData('Place');
+        const games = await cachedFetchData('Game');
 
         const playerSelect = document.getElementById('winrate-players');
         const loserSelect = document.getElementById('winrate-loser');
@@ -637,3 +680,153 @@ function initializeSearch() {
         }
     });
 }
+
+// Initialize generate report functionality
+function initializeGenerateReport() {
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    const generateReportModal = new bootstrap.Modal(document.getElementById('generate-report-modal'));
+    const generatePdfBtn = document.getElementById('generate-pdf-btn');
+
+    // Handle generate report button click
+    generateReportBtn.addEventListener('click', async () => {
+        await populateReportModal();
+        generateReportModal.show();
+    });
+
+    // Handle generate PDF button click
+    generatePdfBtn.addEventListener('click', async () => {
+        const playerId = document.getElementById('report-player').value;
+        const year = document.getElementById('report-year').value;
+        const gameId = document.getElementById('report-game').value;
+
+        if (!playerId || !year) {
+            alert('Please select a player and year.');
+            return;
+        }
+
+        try {
+            const players = await cachedFetchData('Player');
+            const games = await cachedFetchData('Game');
+            const data = await cachedFetchData('Data');
+
+            const player = players.find(p => p.id_player === playerId);
+            if (!player) {
+                alert('Player not found');
+                return;
+            }
+
+            let playerData = data.filter(d =>
+                d.id_player === playerId &&
+                new Date(d.date).getFullYear().toString() === year
+            );
+
+            if (gameId !== 'all') {
+                const game = games.find(g => g.id_game === gameId);
+                if (game) {
+                    playerData = playerData.filter(d => d.name_game === game.name_game);
+                }
+            }
+
+            const wins = playerData.filter(d => d.lose == 0).length;
+            const losses = playerData.filter(d => d.lose == 1).length;
+            const totalGames = wins + losses;
+            const winrate = totalGames ? ((wins / totalGames) * 100).toFixed(2) : 0;
+            const points = wins * 3 - losses;
+
+            /* ===== Ranking ===== */
+            const stats = {};
+            players.forEach(p => stats[p.id_player] = { name: p.name, wins: 0, losses: 0, points: 0 });
+
+            data.forEach(d => {
+                if (!stats[d.id_player]) return;
+                if (year !== 'all' && new Date(d.date).getFullYear().toString() !== year) return;
+                if (gameId !== 'all') {
+                    const g = games.find(x => x.id_game === gameId);
+                    if (g && d.name_game !== g.name_game) return;
+                }
+
+                if (d.lose == 0) {
+                    stats[d.id_player].wins++;
+                    stats[d.id_player].points += 3;
+                } else {
+                    stats[d.id_player].losses++;
+                    stats[d.id_player].points -= 1;
+                }
+            });
+
+            const leaderboard = Object.values(stats).map(s => {
+                const t = s.wins + s.losses;
+                return { ...s, total: t, winrate: t ? s.wins / t : 0 };
+            });
+
+            leaderboard.sort((a, b) =>
+                b.points !== a.points ? b.points - a.points : b.winrate - a.winrate
+            );
+
+            const rank = leaderboard.findIndex(p => p.name === player.name) + 1;
+
+            const gameText = gameId === 'all'
+                ? 'All Games'
+                : games.find(g => g.id_game === gameId)?.name_game || 'Unknown';
+
+            let level = 'PARTICIPANT';
+            if (winrate >= 80) {
+                level = 'MASTER PLAYER';
+            } else if (winrate >= 60) {
+                level = 'SKILLED PLAYER';
+            } else if (winrate >= 40) {
+                level = 'APPRENTICE PLAYER';
+            }
+
+            await generateGameCertificate(playerId, player.name, year, gameText, rank, totalGames, winrate, points, level);
+            generateReportModal.hide();
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF. Please try again.');
+        }
+    });
+}
+
+// Populate report modal dropdowns
+async function populateReportModal() {
+    try {
+        const players = await cachedFetchData('Player');
+        const games = await cachedFetchData('Game');
+        const data = await cachedFetchData('Data');
+
+        // Populate players
+        const playerSelect = document.getElementById('report-player');
+        playerSelect.innerHTML = '<option value="">Choose a player...</option>';
+        players.forEach(player => {
+            const option = document.createElement('option');
+            option.value = player.id_player;
+            option.textContent = player.name;
+            playerSelect.appendChild(option);
+        });
+
+        // Populate years
+        const yearSelect = document.getElementById('report-year');
+        yearSelect.innerHTML = '<option value="">Choose a year...</option>';
+        const years = [...new Set(data.map(d => new Date(d.date).getFullYear()))].sort((a, b) => b - a);
+        years.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year.toString();
+            option.textContent = year.toString();
+            yearSelect.appendChild(option);
+        });
+
+        // Populate games
+        const gameSelect = document.getElementById('report-game');
+        gameSelect.innerHTML = '<option value="all">All Games</option>';
+        games.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.id_game;
+            option.textContent = game.name_game;
+            gameSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error populating report modal:', error);
+    }
+}
+
+

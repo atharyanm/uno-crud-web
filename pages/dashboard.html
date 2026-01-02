@@ -2,11 +2,102 @@
     <div class="row">
         <div class="col-12">
             <div class="row g-3">
-                <div class="col-12">
+                <div class="col-12 col-md-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-center">
                             <button type="button" class="btn btn-primary btn-lg w-100" id="add-winrate-btn">
                                 <i class="fas fa-plus me-2"></i>Add Winrate
+                            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generate-report-modal" tabindex="-1" aria-labelledby="generateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="generateReportModalLabel">Generate Player Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="generate-report-form">
+                    <div class="mb-3">
+                        <label for="report-player" class="form-label">Select Player</label>
+                        <select class="form-select" id="report-player" required>
+                            <option value="">Choose a player...</option>
+                            <!-- Player options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report-year" class="form-label">Select Year</label>
+                        <select class="form-select" id="report-year" required>
+                            <option value="">Choose a year...</option>
+                            <!-- Year options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report-game" class="form-label">Select Game</label>
+                        <select class="form-select" id="report-game" required>
+                            <option value="all">All Games</option>
+                            <!-- Game options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="generate-pdf-btn">Generate PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generate-report-modal" tabindex="-1" aria-labelledby="generateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="generateReportModalLabel">Generate Player Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="generate-report-form">
+                    <div class="mb-3">
+                        <label for="report-player" class="form-label">Select Player</label>
+                        <select class="form-select" id="report-player" required>
+                            <option value="">Choose a player...</option>
+                            <!-- Player options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report-year" class="form-label">Select Year</label>
+                        <select class="form-select" id="report-year" required>
+                            <option value="">Choose a year...</option>
+                            <!-- Year options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report-game" class="form-label">Select Game</label>
+                        <select class="form-select" id="report-game" required>
+                            <option value="all">All Games</option>
+                            <!-- Game options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="generate-pdf-btn">Generate PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+                <div class="col-12 col-md-6">
+                    <div class="card">
+                        <div class="card-body d-flex align-items-center justify-content-center">
+                            <button type="button" class="btn btn-success btn-lg w-100" id="generate-report-btn">
+                                <i class="fas fa-file-pdf me-2"></i>Generate Report
                             </button>
                         </div>
                     </div>
