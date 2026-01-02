@@ -167,6 +167,17 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
             rankingYearFilter.appendChild(option2);
         }
 
+        // Add "All Time" option
+        const allTimeOption1 = document.createElement('option');
+        allTimeOption1.value = 'all';
+        allTimeOption1.textContent = 'All Time';
+        leaderboardYearFilter.appendChild(allTimeOption1);
+
+        const allTimeOption2 = document.createElement('option');
+        allTimeOption2.value = 'all';
+        allTimeOption2.textContent = 'All Time';
+        rankingYearFilter.appendChild(allTimeOption2);
+
         // Populate game filter dropdowns
         const leaderboardFilter = document.getElementById('leaderboard-game-filter');
         const rankingFilter = document.getElementById('ranking-game-filter');
