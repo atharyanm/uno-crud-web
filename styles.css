@@ -356,13 +356,14 @@ button.btn.btn-link.p-0.text-decoration-none:hover {
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
-        top: 0;
+        top: 56px;
         left: -250px;
         width: 250px;
-        height: 100vh;
+        height: calc(100vh - 56px);
         z-index: 1050;
         transition: left 0.3s ease;
         box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        padding-top: 20px;
     }
 
     .sidebar.show {
