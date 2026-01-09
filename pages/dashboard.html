@@ -171,14 +171,41 @@
             <div class="row mt-4">
                 <div class="col-12">
                     <h3>Recent Games</h3>
-                    <div class="d-flex flex-column flex-sm-row gap-3 mb-3">
-                        <select class="form-select w-auto" id="search-type">
-                            <option value="place">Search by Place</option>
-                            <option value="player">Search by Player</option>
-                            <option value="date">Search by Date</option>
-                        </select>
-                        <input type="text" class="form-control w-auto" id="search-input" placeholder="Enter search value">
-                        <button class="btn btn-primary" id="search-btn"><i class="fas fa-search"></i> Search</button>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3"><i class="fas fa-filter me-2"></i>Filter Recent Games</h6>
+                            <div class="row g-3">
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <label for="filter-player" class="form-label">Player</label>
+                                    <select class="form-select" id="filter-player">
+                                        <option value="">All Players</option>
+                                        <!-- Player options will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <label for="filter-place" class="form-label">Place</label>
+                                    <select class="form-select" id="filter-place">
+                                        <option value="">All Places</option>
+                                        <!-- Place options will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <label for="filter-game" class="form-label">Game</label>
+                                    <select class="form-select" id="filter-game">
+                                        <option value="">All Games</option>
+                                        <!-- Game options will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <label for="filter-date" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="filter-date">
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-primary" id="apply-filters-btn"><i class="fas fa-search"></i> Apply Filters</button>
+                                <button class="btn btn-outline-secondary rounded-pill" id="clear-filters-btn"><i class="fas fa-trash me-1"></i> Clear</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-striped" id="recent-games-table">

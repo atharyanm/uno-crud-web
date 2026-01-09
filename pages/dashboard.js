@@ -187,8 +187,8 @@ window.loadDashboardContent = async () => {
             winrateFormInitialized = true; // Prevent re-initialization
         }
 
-        // Initialize search functionality
-        initializeSearch();
+        // Initialize filter functionality
+        initializeFilters();
 
         // Initialize generate report functionality
         initializeGenerateReport();
@@ -413,10 +413,10 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
 }
 
 // DIUBAH: Tambahkan "window."
-window.loadRecentGames = async function(page = 1, limit = 10, searchType = currentSearchType, searchValue = currentSearchValue) {
-    console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}, searchType=${searchType}, searchValue=${searchValue}`);
+window.loadRecentGames = async function(page = 1, limit = 10, filters = {}) {
+    console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}, filters=${JSON.stringify(filters)}`);
     try {
-        console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}, Search: ${searchType} = ${searchValue}`);
+        console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}, Filters: ${JSON.stringify(filters)}`);
         const data = await cachedFetchData('Data');
         const players = await cachedFetchData('Player');
         const places = await cachedFetchData('Place');
@@ -424,28 +424,28 @@ window.loadRecentGames = async function(page = 1, limit = 10, searchType = curre
 
         let filteredData = data;
 
-        // Apply search filter
-        if (searchValue && searchValue.trim() !== '') {
-            const trimmedValue = searchValue.trim().toLowerCase();
-            filteredData = data.filter(game => {
-                switch (searchType) {
-                    case 'place':
-                        const place = places.find(p => p.id_place === game.id_place);
-                        return place && place.name.toLowerCase().includes(trimmedValue);
-                    case 'player':
-                        const player = players.find(p => p.id_player === game.id_player);
-                        return player && player.name.toLowerCase().includes(trimmedValue);
-                    case 'date':
-                        if (!game.date) return false;
-                        try {
-                            const gameDate = new Date(game.date).toISOString().split('T')[0]; // YYYY-MM-DD format
-                            return gameDate === trimmedValue;
-                        } catch (error) {
-                            console.error('Error parsing date for filtering:', game.date, error);
-                            return false;
-                        }
-                    default:
-                        return true;
+        // Apply combined filters
+        if (filters.player && filters.player !== '') {
+            filteredData = filteredData.filter(game => game.id_player === filters.player);
+        }
+
+        if (filters.place && filters.place !== '') {
+            filteredData = filteredData.filter(game => game.id_place === filters.place);
+        }
+
+        if (filters.game && filters.game !== '') {
+            filteredData = filteredData.filter(game => game.name_game === games.find(g => g.id_game === filters.game)?.name_game);
+        }
+
+        if (filters.date && filters.date !== '') {
+            filteredData = filteredData.filter(game => {
+                if (!game.date) return false;
+                try {
+                    const gameDate = new Date(game.date).toISOString().split('T')[0]; // YYYY-MM-DD format
+                    return gameDate === filters.date;
+                } catch (error) {
+                    console.error('Error parsing date for filtering:', game.date, error);
+                    return false;
                 }
             });
         }
@@ -660,52 +660,85 @@ window.changeRecentGamesPage = async (page) => {
     console.log(`[PAGINATION DEBUG] changeRecentGamesPage called with page=${page}`);
     console.log(`[Pagination] Changing to page ${page}`);
     const scrollY = window.scrollY;
-    await loadRecentGames(page);
+
+    // Get current filter values
+    const currentFilters = {
+        player: document.getElementById('filter-player').value,
+        place: document.getElementById('filter-place').value,
+        game: document.getElementById('filter-game').value,
+        date: document.getElementById('filter-date').value
+    };
+
+    await loadRecentGames(page, recentGamesPerPage, currentFilters);
     window.scrollTo(0, scrollY);
 }
 
-// Initialize search functionality
-function initializeSearch() {
-    const searchTypeSelect = document.getElementById('search-type');
-    const searchInput = document.getElementById('search-input');
-    const searchBtn = document.getElementById('search-btn');
+// Initialize filter functionality
+async function initializeFilters() {
+    try {
+        const players = await cachedFetchData('Player');
+        const places = await cachedFetchData('Place');
+        const games = await cachedFetchData('Game');
 
-    // Function to update input field based on search type
-    function updateInputField() {
-        const selectedType = searchTypeSelect.value;
-        if (selectedType === 'date') {
-            searchInput.type = 'date';
-            searchInput.placeholder = 'Select date';
-        } else {
-            searchInput.type = 'text';
-            searchInput.placeholder = `Enter ${selectedType} name`;
-        }
+        // Populate player filter
+        const playerFilter = document.getElementById('filter-player');
+        playerFilter.innerHTML = '<option value="">All Players</option>';
+        players.forEach(player => {
+            const option = document.createElement('option');
+            option.value = player.id_player;
+            option.textContent = player.name;
+            playerFilter.appendChild(option);
+        });
+
+        // Populate place filter
+        const placeFilter = document.getElementById('filter-place');
+        placeFilter.innerHTML = '<option value="">All Places</option>';
+        places.forEach(place => {
+            const option = document.createElement('option');
+            option.value = place.id_place;
+            option.textContent = place.name;
+            placeFilter.appendChild(option);
+        });
+
+        // Populate game filter
+        const gameFilter = document.getElementById('filter-game');
+        gameFilter.innerHTML = '<option value="">All Games</option>';
+        games.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.id_game;
+            option.textContent = game.name_game;
+            gameFilter.appendChild(option);
+        });
+
+        // Event listeners for apply and clear buttons
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+        applyFiltersBtn.addEventListener('click', async () => {
+            const filters = {
+                player: playerFilter.value,
+                place: placeFilter.value,
+                game: gameFilter.value,
+                date: document.getElementById('filter-date').value
+            };
+
+            currentRecentGamesPage = 1; // Reset to first page
+            await loadRecentGames(1, recentGamesPerPage, filters);
+        });
+
+        clearFiltersBtn.addEventListener('click', async () => {
+            playerFilter.value = '';
+            placeFilter.value = '';
+            gameFilter.value = '';
+            document.getElementById('filter-date').value = '';
+
+            currentRecentGamesPage = 1; // Reset to first page
+            await loadRecentGames(1, recentGamesPerPage, {});
+        });
+
+    } catch (error) {
+        console.error('Error initializing filters:', error);
     }
-
-    // Initialize input field
-    updateInputField();
-
-    // Event listener for search type change
-    searchTypeSelect.addEventListener('change', updateInputField);
-
-    // Event listener for search button
-    searchBtn.addEventListener('click', async () => {
-        const searchType = searchTypeSelect.value;
-        const searchValue = searchInput.value.trim();
-
-        currentSearchType = searchType;
-        currentSearchValue = searchValue;
-        currentRecentGamesPage = 1; // Reset to first page
-
-        await loadRecentGames(1, recentGamesPerPage, searchType, searchValue);
-    });
-
-    // Allow search on Enter key press
-    searchInput.addEventListener('keypress', async (e) => {
-        if (e.key === 'Enter') {
-            searchBtn.click();
-        }
-    });
 }
 
 // Initialize generate report functionality
