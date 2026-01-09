@@ -122,9 +122,9 @@ window.loadDashboardContent = async () => {
                         return;
                     }
 
-                    const wibDate = new Date(datetime);
-                    // Convert to ISO string for Supabase timestampz
-                    const dateISO = wibDate.toISOString();
+                    // Parse the datetime as local time and convert to UTC for Supabase
+                    const localDate = new Date(datetime + ':00'); // Add seconds if not present
+                    const dateISO = new Date(localDate.getTime() - (localDate.getTimezoneOffset() * 60000)).toISOString();
 
                     // Check if a game session with same date, place, and game already exists
                     const existingData = await fetchData('Data');
