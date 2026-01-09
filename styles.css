@@ -238,6 +238,60 @@ main.main-hidden {
     margin-bottom: 8px;
 }
 
+/* Select dropdown (combo box) text color */
+.form-select {
+    color: #000;
+}
+
+.form-select option {
+    color: #000;
+}
+
+/* Filter button text color */
+.btn-link {
+    color: #000 !important;
+}
+
+.btn-link:hover {
+    color: #333 !important;
+}
+
+/* Specific filter button text color */
+.card-title .btn-link {
+    color: #000 !important;
+}
+
+.card-title .btn-link:hover {
+    color: #333 !important;
+}
+
+/* Override Bootstrap btn-link color for filter button */
+.btn.btn-link {
+    color: #000 !important;
+}
+
+.btn.btn-link:hover {
+    color: #333 !important;
+}
+
+/* More specific override for filter button */
+.btn.btn-link.p-0.text-decoration-none {
+    color: #000 !important;
+}
+
+.btn.btn-link.p-0.text-decoration-none:hover {
+    color: #333 !important;
+}
+
+/* Ultimate override for filter button text */
+button.btn.btn-link.p-0.text-decoration-none {
+    color: #000 !important;
+}
+
+button.btn.btn-link.p-0.text-decoration-none:hover {
+    color: #333 !important;
+}
+
 /* Sidebar toggle button */
 .sidebar-toggle-btn {
     position: fixed;
@@ -565,4 +619,9 @@ main.main-hidden {
 .custom-modal .close:focus {
     color: black;
     text-decoration: none;
+}
+
+/* Filter toggle button animation */
+[data-bs-target="#filterCollapse"] .fa-chevron-down {
+    transition: transform 0.3s ease;
 }

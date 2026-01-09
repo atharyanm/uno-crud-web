@@ -437,12 +437,25 @@ window.loadRecentGames = async function(page = 1, limit = 10, filters = {}) {
             filteredData = filteredData.filter(game => game.name_game === games.find(g => g.id_game === filters.game)?.name_game);
         }
 
-        if (filters.date && filters.date !== '') {
+        if (filters.startDate && filters.startDate !== '') {
             filteredData = filteredData.filter(game => {
                 if (!game.date) return false;
                 try {
                     const gameDate = new Date(game.date).toISOString().split('T')[0]; // YYYY-MM-DD format
-                    return gameDate === filters.date;
+                    return gameDate >= filters.startDate;
+                } catch (error) {
+                    console.error('Error parsing date for filtering:', game.date, error);
+                    return false;
+                }
+            });
+        }
+
+        if (filters.endDate && filters.endDate !== '') {
+            filteredData = filteredData.filter(game => {
+                if (!game.date) return false;
+                try {
+                    const gameDate = new Date(game.date).toISOString().split('T')[0]; // YYYY-MM-DD format
+                    return gameDate <= filters.endDate;
                 } catch (error) {
                     console.error('Error parsing date for filtering:', game.date, error);
                     return false;
@@ -666,7 +679,8 @@ window.changeRecentGamesPage = async (page) => {
         player: document.getElementById('filter-player').value,
         place: document.getElementById('filter-place').value,
         game: document.getElementById('filter-game').value,
-        date: document.getElementById('filter-date').value
+        startDate: document.getElementById('filter-start-date').value,
+        endDate: document.getElementById('filter-end-date').value
     };
 
     await loadRecentGames(page, recentGamesPerPage, currentFilters);
@@ -719,7 +733,8 @@ async function initializeFilters() {
                 player: playerFilter.value,
                 place: placeFilter.value,
                 game: gameFilter.value,
-                date: document.getElementById('filter-date').value
+                startDate: document.getElementById('filter-start-date').value,
+                endDate: document.getElementById('filter-end-date').value
             };
 
             currentRecentGamesPage = 1; // Reset to first page
@@ -730,10 +745,24 @@ async function initializeFilters() {
             playerFilter.value = '';
             placeFilter.value = '';
             gameFilter.value = '';
-            document.getElementById('filter-date').value = '';
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
 
             currentRecentGamesPage = 1; // Reset to first page
             await loadRecentGames(1, recentGamesPerPage, {});
+        });
+
+        // Add animation for filter toggle button
+        const filterCollapse = document.getElementById('filterCollapse');
+        const filterButton = document.querySelector('[data-bs-target="#filterCollapse"]');
+        const chevronIcon = filterButton.querySelector('.fa-chevron-down');
+
+        filterCollapse.addEventListener('show.bs.collapse', function () {
+            chevronIcon.style.transform = 'rotate(180deg)';
+        });
+
+        filterCollapse.addEventListener('hide.bs.collapse', function () {
+            chevronIcon.style.transform = 'rotate(0deg)';
         });
 
     } catch (error) {
