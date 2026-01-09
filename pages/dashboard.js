@@ -343,14 +343,19 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
         let worstPlayer = null;
         if (leaderboard.length > 0) {
             bestPlayer = leaderboard[0];
-            worstPlayer = leaderboard[leaderboard.length - 1];
 
-            // Handle ties for worst player
-            const lowestPoints = worstPlayer.points;
-            const tiedPlayers = leaderboard.filter(p => p.points === lowestPoints);
-            if (tiedPlayers.length > 1) {
-                tiedPlayers.sort((a, b) => b.losses - a.losses);
-                worstPlayer = tiedPlayers[0];
+            // Filter out players with 0 matches for worst player calculation
+            const playersWithMatches = leaderboard.filter(p => p.total > 0);
+            if (playersWithMatches.length > 0) {
+                worstPlayer = playersWithMatches[playersWithMatches.length - 1];
+
+                // Handle ties for worst player
+                const lowestPoints = worstPlayer.points;
+                const tiedPlayers = playersWithMatches.filter(p => p.points === lowestPoints);
+                if (tiedPlayers.length > 1) {
+                    tiedPlayers.sort((a, b) => b.losses - a.losses);
+                    worstPlayer = tiedPlayers[0];
+                }
             }
         }
 
