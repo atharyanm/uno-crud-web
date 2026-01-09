@@ -123,7 +123,20 @@ window.loadDashboardContent = async () => {
                     }
 
                     const wibDate = new Date(datetime);
-                    const dateStr = `${wibDate.getFullYear()}-${String(wibDate.getMonth() + 1).padStart(2, '0')}-${String(wibDate.getDate()).padStart(2, '0')} ${String(wibDate.getHours()).padStart(2, '0')}:${String(wibDate.getMinutes()).padStart(2, '0')}:${String(wibDate.getSeconds()).padStart(2, '0')}`;
+                    // Convert to ISO string for Supabase timestampz
+                    const dateISO = wibDate.toISOString();
+
+                    // Check if a game session with same date, place, and game already exists
+                    const existingData = await fetchData('Data');
+                    const duplicateSession = existingData.find(d =>
+                        d.date.startsWith(dateISO.substring(0, 19)) && // Compare date-time up to seconds
+                        d.id_place === placeId &&
+                        d.name_game === game.name_game
+                    );
+                    if (duplicateSession) {
+                        alert('A game session with this date, place, and game already exists. Please choose a different date or modify the session details.');
+                        return;
+                    }
 
                     for (const playerId of playerIds) {
                         const player = players.find(p => p.id_player === playerId);
@@ -135,7 +148,7 @@ window.loadDashboardContent = async () => {
                             name_player: player.name,
                             name_place: place.name,
                             lose: lose,
-                            date: dateStr,
+                            date: dateISO,
                             id_place: placeId,
                             id_player: playerId,
                             name_game: game.name_game
@@ -150,6 +163,15 @@ window.loadDashboardContent = async () => {
                     }
 
                     console.log('Winrate added successfully');
+                    // Clear cache to ensure fresh data reload
+                    dataCache = {
+                        players: null,
+                        games: null,
+                        places: null,
+                        gameData: null,
+                        leaderboard: null,
+                        lastUpdated: null
+                    };
                     document.getElementById('add-winrate-form').reset();
                     addWinrateModal.hide();
                     await loadDashboardContent();
