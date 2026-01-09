@@ -79,13 +79,13 @@
                                 <table class="table table-striped" id="leaderboard-table">
                                     <thead>
                                         <tr>
-                                            <th>Rank</th>
-                                            <th>Player</th>
-                                            <th>Points</th>
-                                            <th>Wins</th>
-                                            <th>Losses</th>
-                                            <th>Winrate (%)</th>
-                                            <th>Games</th>
+                                            <th><i class="fas fa-trophy me-1"></i>Rank</th>
+                                            <th><i class="fas fa-user me-1"></i>Player</th>
+                                            <th><i class="fas fa-star me-1"></i>Points</th>
+                                            <th><i class="fas fa-check-circle me-1"></i>Wins</th>
+                                            <th><i class="fas fa-times-circle me-1"></i>Losses</th>
+                                            <th><i class="fas fa-percentage me-1"></i>Winrate (%)</th>
+                                            <th><i class="fas fa-gamepad me-1"></i>Games</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -173,40 +173,40 @@
                     <h3>Recent Games</h3>
                     <div class="card mb-3">
                         <div class="card-body">
-                            <h6 class="card-title mb-3">
-                                <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                            <h6 class="card-title mb-3 text-center">
+                                <button class="btn btn-link p-0 text-decoration-none fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
                                     <i class="fas fa-filter me-2"></i>Filter Recent Games <i class="fas fa-chevron-down ms-2"></i>
                                 </button>
                             </h6>
                             <div class="collapse" id="filterCollapse">
                                 <div class="row g-3">
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label for="filter-player" class="form-label">Player</label>
+                                        <label for="filter-player" class="form-label"><i class="fas fa-user me-1"></i>Player</label>
                                         <select class="form-select" id="filter-player">
                                             <option value="">All Players</option>
                                             <!-- Player options will be populated by JavaScript -->
                                         </select>
                                     </div>
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label for="filter-place" class="form-label">Place</label>
+                                        <label for="filter-place" class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Place</label>
                                         <select class="form-select" id="filter-place">
                                             <option value="">All Places</option>
                                             <!-- Place options will be populated by JavaScript -->
                                         </select>
                                     </div>
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label for="filter-game" class="form-label">Game</label>
+                                        <label for="filter-game" class="form-label"><i class="fas fa-gamepad me-1"></i>Game</label>
                                         <select class="form-select" id="filter-game">
                                             <option value="">All Games</option>
                                             <!-- Game options will be populated by JavaScript -->
                                         </select>
                                     </div>
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label for="filter-start-date" class="form-label">Start Date</label>
+                                        <label for="filter-start-date" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Start Date</label>
                                         <input type="date" class="form-control" id="filter-start-date">
                                     </div>
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label for="filter-end-date" class="form-label">End Date</label>
+                                        <label for="filter-end-date" class="form-label"><i class="fas fa-calendar-alt me-1"></i>End Date</label>
                                         <input type="date" class="form-control" id="filter-end-date">
                                     </div>
                                 </div>
