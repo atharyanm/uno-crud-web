@@ -39,7 +39,7 @@ body {
 .sidebar {
     background: linear-gradient(135deg, #FFFFE0 0%, #FFDAB9 100%);
     position: fixed;
-    top: 0;
+    top: 100;
     left: 0;
     width: 250px;
     height: 100vh;
