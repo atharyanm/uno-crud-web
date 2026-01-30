@@ -406,6 +406,34 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
             loadBestPlayer(rankingYearFilter.value, rankingFilter.value);
         });
 
+        // Populate last loser game filter (no "All Games" option)
+        const lastLoserGameFilter = document.getElementById('last-loser-game-filter');
+        lastLoserGameFilter.innerHTML = '';
+        games.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.id_game;
+            option.textContent = game.name_game;
+            lastLoserGameFilter.appendChild(option);
+        });
+
+        // Set default to Uno if available
+        const unoGame = games.find(g => g.name_game.toLowerCase() === 'uno');
+        if (unoGame) {
+            lastLoserGameFilter.value = unoGame.id_game;
+        }
+
+        // Load last loser
+        const lastLoserYearFilter = document.getElementById('last-loser-year-filter');
+        await loadLastLoser(lastLoserYearFilter.value, lastLoserGameFilter.value);
+
+        // Add event listeners for last loser filters
+        lastLoserYearFilter.addEventListener('change', () => {
+            loadLastLoser(lastLoserYearFilter.value, lastLoserGameFilter.value);
+        });
+        lastLoserGameFilter.addEventListener('change', () => {
+            loadLastLoser(lastLoserYearFilter.value, lastLoserGameFilter.value);
+        });
+
     } catch (error) {
         console.error('Error loading leaderboard:', error);
         document.getElementById('best-worst-player').textContent = 'Error loading data';
@@ -874,6 +902,76 @@ function initializeGenerateReport() {
             alert('Error generating PDF. Please try again.');
         }
     });
+}
+
+// DIUBAH: Tambahkan "window."
+window.loadLastLoser = async function(yearFilter = '2026', gameFilter = '') {
+    try {
+        const data = await cachedFetchData('Data');
+        const players = await cachedFetchData('Player');
+        const games = await cachedFetchData('Game');
+        const places = await cachedFetchData('Place');
+
+        // Filter data based on selected year and game
+        let filteredData = data;
+        if (yearFilter !== 'all') {
+            filteredData = filteredData.filter(game => new Date(game.date).getFullYear().toString() === yearFilter);
+        }
+        if (gameFilter !== '') {
+            filteredData = filteredData.filter(game => game.name_game === games.find(g => g.id_game === gameFilter)?.name_game);
+        }
+
+        // Filter for losses only
+        const losses = filteredData.filter(game => game.lose === '1' || game.lose === 1);
+
+        // Sort by date descending to get the most recent loss
+        losses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        let lastLoser = null;
+        let lastLossDetails = null;
+        if (losses.length > 0) {
+            const lastLoss = losses[0];
+            lastLoser = players.find(p => p.id_player === lastLoss.id_player);
+            const place = places.find(p => p.id_place === lastLoss.id_place);
+            const game = games.find(g => g.name_game === lastLoss.name_game);
+
+            // Format date and time
+            let formattedDateTime = 'Unknown';
+            let formattedPlace = 'Unknown';
+            if (lastLoss.date) {
+                try {
+                    const dateMatch = lastLoss.date.match(/(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})/);
+                    if (dateMatch) {
+                        const dateStr = dateMatch[1];
+                        const timeStr = dateMatch[2];
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        const [hour, minute, second] = timeStr.split(':').map(Number);
+                        formattedDateTime = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+                    }
+                } catch (error) {
+                    console.error('Error parsing date for last loser:', lastLoss.date, error);
+                }
+            }
+            if (place) {
+                formattedPlace = place.name;
+            }
+
+            lastLossDetails = `${formattedDateTime} at ${formattedPlace}`;
+        }
+
+        // Update last loser card
+        if (lastLoser) {
+            document.getElementById('last-loser-name').textContent = lastLoser.name;
+            document.getElementById('last-loser-details').textContent = lastLossDetails;
+        } else {
+            document.getElementById('last-loser-name').textContent = 'No data';
+            document.getElementById('last-loser-details').textContent = 'No recent losses found';
+        }
+    } catch (error) {
+        console.error('Error loading last loser:', error);
+        document.getElementById('last-loser-name').textContent = 'Error loading data';
+        document.getElementById('last-loser-details').textContent = 'Error loading details';
+    }
 }
 
 // Populate report modal dropdowns
