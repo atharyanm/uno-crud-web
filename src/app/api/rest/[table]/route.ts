@@ -3,10 +3,10 @@ import pool from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { table: string } }
+  { params }: { params: Promise<{ table: string }> }
 ) {
   try {
-    const table = params.table;
+    const { table } = await params;
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get('limit');
     const offsetParam = searchParams.get('offset');
@@ -37,17 +37,17 @@ export async function GET(
       },
     });
   } catch (err: any) {
-    console.error(`API GET /api/rest/${params.table} error:`, err);
+    console.error(`API GET error:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { table: string } }
+  { params }: { params: Promise<{ table: string }> }
 ) {
   try {
-    const table = params.table;
+    const { table } = await params;
     const data = await request.json();
 
     const keys = Object.keys(data);
@@ -61,17 +61,17 @@ export async function POST(
 
     return NextResponse.json(result.rows, { status: 201 });
   } catch (err: any) {
-    console.error(`API POST /api/rest/${params.table} error:`, err);
+    console.error(`API POST error:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { table: string } }
+  { params }: { params: Promise<{ table: string }> }
 ) {
   try {
-    const table = params.table;
+    const { table } = await params;
     const data = await request.json();
     const { searchParams } = new URL(request.url);
 
@@ -103,17 +103,17 @@ export async function PATCH(
     const result = await pool.query(query, values);
     return NextResponse.json(result.rows);
   } catch (err: any) {
-    console.error(`API PATCH /api/rest/${params.table} error:`, err);
+    console.error(`API PATCH error:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { table: string } }
+  { params }: { params: Promise<{ table: string }> }
 ) {
   try {
-    const table = params.table;
+    const { table } = await params;
     const { searchParams } = new URL(request.url);
 
     let idField: string | null = null;
@@ -139,7 +139,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error(`API DELETE /api/rest/${params.table} error:`, err);
+    console.error(`API DELETE error:`, err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
