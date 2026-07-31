@@ -215,7 +215,7 @@ export default function DashboardPage() {
       <Sidebar />
 
       {/* Main Content Area */}
-      <main className="lg:pl-64 pt-20 lg:pt-6 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      <main className="lg:pl-64 pt-24 lg:pt-24 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
 
         {/* Tongkrongan Photo Banner Header */}
         <div className="relative rounded-3xl overflow-hidden border border-warm-amber/30 shadow-[0_0_40px_rgba(245,158,11,0.15)] min-h-[160px] sm:min-h-[180px] p-6 sm:p-8 flex flex-col justify-end">
