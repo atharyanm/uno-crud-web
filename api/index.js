@@ -7,11 +7,39 @@ const app = express();
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_fCiRrntQXE05@ep-crimson-resonance-az0bsitd-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require',
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
 });
 
 app.use(cors());
 app.use(express.json());
+
+// In-memory cache for API endpoints
+const cache = new Map();
+const CACHE_TTL = 15000; // 15 seconds
+
+function getCached(key) {
+    const entry = cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > CACHE_TTL) {
+        cache.delete(key);
+        return null;
+    }
+    return entry.data;
+}
+
+function setCache(key, data) {
+    cache.set(key, { timestamp: Date.now(), data });
+}
+
+function clearCache(table) {
+    cache.delete(table);
+    for (const key of cache.keys()) {
+        if (key.startsWith(table)) cache.delete(key);
+    }
+}
 
 const router = express.Router();
 
@@ -19,8 +47,15 @@ const router = express.Router();
 router.get('/:table', async (req, res) => {
     try {
         const table = req.params.table;
-        const limit = parseInt(req.query.limit) || 1000;
-        const offset = parseInt(req.query.offset) || 0;
+        const limitParam = req.query.limit;
+        const offsetParam = req.query.offset;
+        
+        const cacheKey = `${table}_${limitParam || 'all'}_${offsetParam || 0}`;
+        const cachedData = getCached(cacheKey);
+        if (cachedData) {
+            res.setHeader('Cache-Control', 'public, max-age=15, s-maxage=30');
+            return res.json(cachedData);
+        }
 
         let orderCol = 'id';
         if (table === 'User') orderCol = 'id_user';
@@ -28,8 +63,22 @@ router.get('/:table', async (req, res) => {
         if (table === 'Place') orderCol = 'id_place';
         if (table === 'Game') orderCol = 'id_game';
 
-        const query = `SELECT * FROM "${table}" ORDER BY "${orderCol}" ASC LIMIT $1 OFFSET $2`;
-        const result = await pool.query(query, [limit, offset]);
+        let query;
+        let params = [];
+
+        if (limitParam) {
+            const limit = parseInt(limitParam);
+            const offset = parseInt(offsetParam) || 0;
+            query = `SELECT * FROM "${table}" ORDER BY "${orderCol}" ASC LIMIT $1 OFFSET $2`;
+            params = [limit, offset];
+        } else {
+            query = `SELECT * FROM "${table}" ORDER BY "${orderCol}" ASC`;
+        }
+
+        const result = await pool.query(query, params);
+        setCache(cacheKey, result.rows);
+        
+        res.setHeader('Cache-Control', 'public, max-age=15, s-maxage=30');
         res.json(result.rows);
     } catch (err) {
         console.error(`Error GET /rest/v1/${req.params.table}:`, err);
@@ -52,6 +101,7 @@ router.post('/:table', async (req, res) => {
         const query = `INSERT INTO "${table}" (${cols}) VALUES (${placeholders}) RETURNING *`;
         const result = await pool.query(query, values);
 
+        clearCache(table);
         res.status(201).json(result.rows);
     } catch (err) {
         console.error(`Error POST /rest/v1/${req.params.table}:`, err);
@@ -88,6 +138,7 @@ router.patch('/:table', async (req, res) => {
         const query = `UPDATE "${table}" SET ${setClause} WHERE "${idField}" = $${values.length} RETURNING *`;
 
         const result = await pool.query(query, values);
+        clearCache(table);
         res.json(result.rows);
     } catch (err) {
         console.error(`Error PATCH /rest/v1/${req.params.table}:`, err);
@@ -117,6 +168,7 @@ router.delete('/:table', async (req, res) => {
 
         const query = `DELETE FROM "${table}" WHERE "${idField}" = $1`;
         await pool.query(query, [idVal]);
+        clearCache(table);
         res.status(200).json({ success: true });
     } catch (err) {
         console.error(`Error DELETE /rest/v1/${req.params.table}:`, err);
