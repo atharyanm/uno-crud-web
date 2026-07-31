@@ -442,6 +442,7 @@ window.loadBestPlayer = async function(yearFilter = new Date().getFullYear().toS
 
 // DIUBAH: Tambahkan "window."
 window.loadRecentGames = async function(page = 1, limit = 10, filters = {}) {
+    limit = limit || recentGamesPerPage || 10;
     console.log(`[PAGINATION DEBUG] loadRecentGames function called with page=${page}, limit=${limit}, filters=${JSON.stringify(filters)}`);
     try {
         console.log(`[Pagination] Loading recent games - Page: ${page}, Limit: ${limit}, Filters: ${JSON.stringify(filters)}`);

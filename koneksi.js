@@ -3,8 +3,12 @@ const SUPABASE_URL = (typeof window !== 'undefined' && window.location.origin &&
 const SUPABASE_ANON_KEY = 'neon';
 
 // Client-side cache
-const dataCache = new Map();
+if (typeof window.dataCache === 'undefined') {
+    window.dataCache = new Map();
+}
+var dataCache = window.dataCache;
 const CACHE_TTL_MS = 15000; // 15 seconds
+
 
 function clearClientCache(table) {
     if (table) {
