@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -14,7 +14,10 @@ import {
   Menu,
   X,
   Target,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  User,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -22,7 +25,9 @@ export default function Sidebar() {
   const router = useRouter();
   const [user, setUser] = useState<{ username: string; role: string } | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('loggedInUser');
@@ -33,6 +38,17 @@ export default function Sidebar() {
         console.error(e);
       }
     }
+  }, []);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -55,27 +71,85 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Top Navbar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-warm-card/90 backdrop-blur-md border-b border-warm-border z-40 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      {/* Top Navbar Header (Visible on Desktop & Mobile) */}
+      <header className="fixed top-0 left-0 right-0 lg:left-64 h-16 bg-warm-card/90 backdrop-blur-md border-b border-warm-border z-40 px-4 sm:px-6 flex items-center justify-between">
+        {/* Left Side: Mobile Menu Button & Brand logo for mobile */}
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-warm-text hover:bg-warm-border/50 rounded-lg transition"
+            className="lg:hidden p-2 text-warm-text hover:bg-warm-border/50 rounded-lg transition"
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <div className="flex items-center gap-2 text-warm-amber font-bold text-lg">
+
+          <div className="lg:hidden flex items-center gap-2 text-warm-amber font-bold text-lg">
             <Target className="w-5 h-5" />
             <span>Sabung WR</span>
           </div>
+
+          <div className="hidden lg:flex items-center gap-2 text-xs text-warm-muted font-medium">
+            <Sparkles size={14} className="text-warm-amber" />
+            <span>Web Tongkrongan Official Winrate Calculator</span>
+          </div>
         </div>
 
+        {/* Right Side: Interactive Profile Dropdown */}
         {user && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-warm-text bg-warm-bg px-3 py-1 rounded-full border border-warm-border">
-              {user.username}
-            </span>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full bg-warm-bg/80 hover:bg-warm-border/50 border border-warm-border transition group"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-warm-amber to-amber-600 flex items-center justify-center text-warm-bg font-black text-xs shadow-md shadow-warm-amber/20">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-warm-text group-hover:text-warm-amber transition line-clamp-1">
+                  {user.username}
+                </span>
+                <span className="text-[10px] text-warm-subtle capitalize font-semibold">
+                  {user.role}
+                </span>
+              </div>
+
+              <ChevronDown
+                size={14}
+                className={`text-warm-subtle transition-transform duration-200 ${
+                  profileDropdownOpen ? 'rotate-180 text-warm-amber' : ''
+                }`}
+              />
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            {profileDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl glass-warm border border-warm-border shadow-2xl overflow-hidden z-50 animate-fadeIn space-y-1 p-2">
+                {/* User Info Header */}
+                <div className="p-3 rounded-xl bg-warm-bg/80 border border-warm-border/60 mb-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <User size={14} className="text-warm-amber" />
+                    <span className="text-xs font-bold text-warm-text truncate">{user.username}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-warm-amber capitalize font-semibold pl-5">
+                    <ShieldCheck size={12} />
+                    <span>{user.role} Privileges</span>
+                  </div>
+                </div>
+
+                {/* Logout Dropdown Item */}
+                <button
+                  onClick={() => {
+                    setProfileDropdownOpen(false);
+                    setShowLogoutModal(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-warm-crimson hover:bg-warm-crimson/15 font-semibold text-xs transition"
+                >
+                  <LogOut size={16} />
+                  <span>Log Out Account</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -149,27 +223,11 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Footer User & Logout */}
-        <div className="p-4 border-t border-warm-border bg-warm-bg/30">
-          {user && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-warm-bg/60 border border-warm-border">
-              <div className="flex flex-col overflow-hidden mr-2">
-                <span className="text-sm font-semibold text-warm-text truncate">
-                  {user.username}
-                </span>
-                <span className="text-[11px] text-warm-amber capitalize font-medium">
-                  {user.role} Account
-                </span>
-              </div>
-              <button
-                onClick={() => setShowLogoutModal(true)}
-                className="p-2 text-warm-subtle hover:text-warm-crimson hover:bg-warm-crimson/10 rounded-lg transition"
-                title="Logout"
-              >
-                <LogOut size={18} />
-              </button>
-            </div>
-          )}
+        {/* Sidebar Footer Info */}
+        <div className="p-4 border-t border-warm-border bg-warm-bg/30 text-center">
+          <p className="text-[11px] text-warm-subtle">
+            Sabung WR &bull; Web Tongkrongan
+          </p>
         </div>
       </aside>
 
@@ -182,20 +240,20 @@ export default function Sidebar() {
             </div>
             <h3 className="text-lg font-bold text-warm-text">Confirm Logout</h3>
             <p className="text-sm text-warm-muted">
-              Are you sure you want to sign out from Sabung Win Rate Calculator?
+              Apakah kamu yakin ingin keluar (*log out*) dari akun <span className="text-warm-amber font-semibold">{user?.username}</span>?
             </p>
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowLogoutModal(false)}
                 className="flex-1 py-2.5 px-4 rounded-xl border border-warm-border text-warm-text hover:bg-warm-border/50 text-sm font-medium transition"
               >
-                Cancel
+                Batal
               </button>
               <button
                 onClick={handleLogout}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-warm-amber hover:bg-warm-amberHover text-warm-bg font-semibold text-sm transition shadow-lg shadow-warm-amber/20"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-warm-crimson hover:bg-red-600 text-white font-semibold text-sm transition shadow-lg shadow-warm-crimson/20"
               >
-                Yes, Logout
+                Ya, Logout
               </button>
             </div>
           </div>
