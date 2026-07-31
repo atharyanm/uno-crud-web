@@ -39,12 +39,12 @@ export default function DashboardPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  // Season & Game Filters for Leaderboard
+  // Season & Game Filters for Leaderboard (Klasemen)
   const [leaderboardSeason, setLeaderboardSeason] = useState('current');
   const [leaderboardGame, setLeaderboardGame] = useState('all');
 
   // Last Loser Filter
-  const [lastLoserYear, setLastLoserYear] = useState('2026');
+  const [lastLoserSeason, setLastLoserSeason] = useState('current');
   const [lastLoserGame, setLastLoserGame] = useState('');
 
   // Recent Games Filters & Pagination
@@ -90,7 +90,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Compute Leaderboard by Season & Game
+  // Compute Klasemen / Leaderboard by Season & Game
   let filteredData = dataRecords;
 
   if (leaderboardSeason === 'current') {
@@ -144,10 +144,17 @@ export default function DashboardPage() {
   let lastLoser: any = null;
   const loserFiltered = dataRecords.filter((d) => {
     const yr = new Date(d.date).getFullYear().toString();
+    const currentYr = new Date().getFullYear().toString();
+    const seasonMatch =
+      lastLoserSeason === 'current'
+        ? yr === currentYr
+        : lastLoserSeason === 'all_time'
+        ? true
+        : yr === lastLoserSeason;
     const gameMatch = lastLoserGame
       ? d.name_game === games.find((g) => g.id_game === lastLoserGame)?.name_game
       : true;
-    return yr === lastLoserYear && gameMatch && (d.lose === 1 || d.lose === '1');
+    return seasonMatch && gameMatch && (d.lose === 1 || d.lose === '1');
   });
 
   if (loserFiltered.length > 0) {
@@ -223,10 +230,10 @@ export default function DashboardPage() {
               <Flame size={14} className="fill-warm-amber" /> Web Tongkrongan Official
             </div>
             <h1 className="text-xl sm:text-3xl font-black text-warm-text tracking-tight">
-              Dashboard Sabung Win Rate
+              Klasemen & Dashboard Win Rate
             </h1>
             <p className="text-xs sm:text-sm text-warm-muted">
-              Halo <span className="text-warm-amber font-bold">{currentUser?.username || 'Member'}</span>! Pantau statistik live, leaderboard season, dan piala kekalahan tongkrongan.
+              Halo <span className="text-warm-amber font-bold">{currentUser?.username || 'Member'}</span>! Pantau klasemen season, leaderboard, dan piala kekalahan tongkrongan.
             </p>
           </div>
 
@@ -386,12 +393,14 @@ export default function DashboardPage() {
                     <span>Last Loser</span>
                   </div>
                   <select
-                    value={lastLoserYear}
-                    onChange={(e) => setLastLoserYear(e.target.value)}
+                    value={lastLoserSeason}
+                    onChange={(e) => setLastLoserSeason(e.target.value)}
                     className="py-1 px-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
                   >
+                    <option value="current">Current Season</option>
                     <option value="2026">Tahun 2026</option>
                     <option value="2025">Tahun 2025</option>
+                    <option value="all_time">All Time</option>
                   </select>
                 </div>
 
@@ -417,12 +426,12 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Leaderboard Table Section */}
+        {/* Leaderboard / Klasemen Table Section */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
               <Trophy className="w-5 h-5 text-warm-amber" />
-              <span>Player Leaderboard</span>
+              <span>Klasemen Player (Season & All Time)</span>
             </h2>
 
             {/* Leaderboard Season & Game Filters */}
