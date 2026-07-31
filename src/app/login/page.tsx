@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchData } from '@/lib/api';
-import { Target, Lock, User, Eye, EyeOff, Sparkles, ArrowRight, Flame, Users, Trophy } from 'lucide-react';
+import { Target, Lock, User, Eye, EyeOff, Sparkles, ArrowRight, Flame, Users, Trophy, ShieldCheck, Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +25,6 @@ export default function LoginPage() {
       );
 
       if (foundUser) {
-        localStorage.getItem('loggedInUser');
         localStorage.setItem('loggedInUser', JSON.stringify(foundUser));
         router.push('/dashboard');
       } else {
@@ -41,55 +40,78 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-warm-card via-warm-bg to-warm-bg">
-      <div className="w-full max-w-4xl glass-warm rounded-3xl border border-warm-border shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+      {/* Container with Special Amber Neon Glow Touch */}
+      <div className="w-full max-w-4xl glass-warm rounded-3xl border border-warm-amber/30 shadow-[0_0_60px_rgba(245,158,11,0.18)] overflow-hidden grid grid-cols-1 md:grid-cols-2 group">
 
-        {/* Tongkrongan Hero Banner Side */}
-        <div className="relative min-h-[260px] md:min-h-[500px] flex flex-col justify-between p-6 sm:p-8 bg-cover bg-center overflow-hidden"
-             style={{ backgroundImage: `url('/images/tongkrongan.png')` }}>
-          <div className="absolute inset-0 bg-gradient-to-t from-warm-bg via-warm-bg/70 to-warm-bg/40" />
+        {/* Tongkrongan Landing.jpg Hero Side with Special Touch */}
+        <div className="relative min-h-[280px] md:min-h-[520px] flex flex-col justify-between p-6 sm:p-8 overflow-hidden">
+          {/* Background Image with Zoom Micro-Animation */}
+          <div
+            className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            style={{ backgroundImage: `url('/images/landing.jpg')` }}
+          />
 
-          {/* Top Badge */}
-          <div className="relative z-10 flex items-center gap-2 text-warm-amber font-bold text-sm tracking-wider uppercase bg-warm-bg/80 backdrop-blur-md px-3.5 py-1.5 rounded-full w-fit border border-warm-amber/30">
-            <Flame className="w-4 h-4 fill-warm-amber text-warm-amber" />
-            <span>Web Tongkrongan Official</span>
+          {/* Dual Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-warm-bg via-warm-bg/65 to-warm-bg/25" />
+          <div className="absolute inset-0 bg-warm-amber/5 pointer-events-none mix-blend-overlay" />
+
+          {/* Special Touch Badge Top */}
+          <div className="relative z-10 flex items-center gap-2 text-warm-amber font-bold text-xs tracking-wider uppercase bg-warm-bg/85 backdrop-blur-md px-3.5 py-1.5 rounded-full w-fit border border-warm-amber/40 shadow-lg shadow-warm-amber/10">
+            <Flame className="w-4 h-4 fill-warm-amber text-warm-amber animate-pulse" />
+            <span>Official Tongkrongan HQ</span>
           </div>
 
-          {/* Bottom Hero Description */}
-          <div className="relative z-10 space-y-3 pt-12 md:pt-0">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-warm-amber/20 text-warm-amber border border-warm-amber/40">
-                <Target className="w-6 h-6" />
+          {/* Floating Live Stat Pills (Sentuhan Khusus Overlay) */}
+          <div className="relative z-10 space-y-4 pt-10 md:pt-0">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-warm-amber/20 text-warm-amber border border-warm-amber/40 shadow-md">
+                  <Target className="w-6 h-6" />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-warm-text tracking-tight drop-shadow-md">
+                  Sabung Win Rate
+                </h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-warm-text tracking-tight">
-                Sabung Win Rate
-              </h2>
+              <p className="text-xs sm:text-sm text-warm-muted leading-relaxed font-medium">
+                Web resmi tongkrongan untuk rekap statistik game, win rate sabung, serta piala kekalahan & prestasi player!
+              </p>
             </div>
-            <p className="text-xs sm:text-sm text-warm-muted leading-relaxed">
-              Platform resmi statistik game & win rate tongkrongan. Pantau peringkat, kekalahan terlelap, dan sertifikat performa tongkrongan secara live!
-            </p>
 
-            <div className="flex items-center gap-4 pt-2 text-xs font-semibold text-warm-subtle">
-              <span className="flex items-center gap-1">
-                <Users size={14} className="text-warm-amber" /> Real-time Stats
-              </span>
-              <span className="flex items-center gap-1">
-                <Trophy size={14} className="text-warm-gold" /> Leaderboard
-              </span>
+            {/* Special Touch Floating Feature Badges */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <div className="glass-warm p-2.5 rounded-xl border border-warm-amber/20 flex items-center gap-2 shadow-sm">
+                <Zap size={16} className="text-warm-amber shrink-0" />
+                <div>
+                  <p className="text-[11px] font-bold text-warm-text">4,600+ Match</p>
+                  <span className="text-[9px] text-warm-subtle">Recorded Sessions</span>
+                </div>
+              </div>
+
+              <div className="glass-warm p-2.5 rounded-xl border border-warm-gold/20 flex items-center gap-2 shadow-sm">
+                <Trophy size={16} className="text-warm-gold shrink-0" />
+                <div>
+                  <p className="text-[11px] font-bold text-warm-text">Realtime Rating</p>
+                  <span className="text-[9px] text-warm-subtle">Best/Worst Player</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Login Form Side */}
-        <div className="p-6 sm:p-8 flex flex-col justify-center space-y-6 bg-warm-card/60 backdrop-blur-md">
+        <div className="p-6 sm:p-8 flex flex-col justify-center space-y-6 bg-warm-card/70 backdrop-blur-xl border-t md:border-t-0 md:border-l border-warm-border">
           <div className="space-y-1">
-            <h3 className="text-xl font-bold text-warm-text">Sign In Account</h3>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-warm-amber/10 border border-warm-amber/20 text-warm-amber text-[11px] font-semibold mb-1">
+              <ShieldCheck size={13} /> Tongkrongan Access Only
+            </div>
+            <h3 className="text-xl font-bold text-warm-text">Sign In Tongkrongan</h3>
             <p className="text-xs text-warm-muted">
-              Masukkan akun tongkrongan kamu untuk akses dashboard.
+              Masukkan akun kamu untuk melihat statistik & leaderboard.
             </p>
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-warm-crimson/10 border border-warm-crimson/30 text-warm-crimson text-xs text-center">
+            <div className="p-3.5 rounded-xl bg-warm-crimson/10 border border-warm-crimson/30 text-warm-crimson text-xs text-center font-medium animate-shake">
               {error}
             </div>
           )}
@@ -146,7 +168,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-warm-amber to-warm-terracotta hover:from-warm-amberHover hover:to-warm-terracotta font-semibold text-warm-bg text-xs transition-all duration-200 shadow-lg shadow-warm-amber/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-warm-amber to-warm-terracotta hover:from-warm-amberHover hover:to-warm-terracotta font-semibold text-warm-bg text-xs transition-all duration-200 shadow-lg shadow-warm-amber/25 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <span className="inline-block w-4 h-4 border-2 border-warm-bg border-t-transparent rounded-full animate-spin" />
