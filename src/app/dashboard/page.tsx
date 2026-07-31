@@ -18,17 +18,15 @@ import {
   CheckCircle2,
   XCircle,
   Gamepad2,
-  Calendar,
-  User,
-  MapPin,
-  RefreshCw,
+  Flame,
   Search,
-  Trash2
+  Users
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Raw data
   const [players, setPlayers] = useState<any[]>([]);
@@ -61,6 +59,7 @@ export default function DashboardPage() {
       router.push('/login');
       return;
     }
+    setCurrentUser(JSON.parse(stored));
     loadAllData();
   }, [router]);
 
@@ -78,7 +77,6 @@ export default function DashboardPage() {
       setGames(g);
       setDataRecords(d);
 
-      // Default last loser game to Uno if present
       const uno = g.find((game) => game.name_game.toLowerCase() === 'uno');
       if (uno) setLastLoserGame(uno.id_game);
       else if (g.length > 0) setLastLoserGame(g[0].id_game);
@@ -134,8 +132,6 @@ export default function DashboardPage() {
 
   // Compute Last Loser
   let lastLoser: any = null;
-  let lastLoserGameName = '';
-
   const loserFiltered = dataRecords.filter((d) => {
     const yr = new Date(d.date).getFullYear().toString();
     const gameMatch = lastLoserGame
@@ -147,7 +143,6 @@ export default function DashboardPage() {
   if (loserFiltered.length > 0) {
     const sortedLosers = loserFiltered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     lastLoser = sortedLosers[0];
-    lastLoserGameName = lastLoser.name_game || '';
   }
 
   // Filter Recent Games
@@ -204,33 +199,61 @@ export default function DashboardPage() {
 
       {/* Main Content Area */}
       <main className="lg:pl-64 pt-20 lg:pt-6 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-        {/* Top Action Header */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pb-2 border-b border-warm-border/60">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-warm-text tracking-tight">
-              Dashboard Analytics
+
+        {/* Tongkrongan Photo Banner Header */}
+        <div className="relative rounded-3xl overflow-hidden border border-warm-amber/30 shadow-[0_0_40px_rgba(245,158,11,0.15)] min-h-[160px] sm:min-h-[180px] p-6 sm:p-8 flex flex-col justify-end">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url('/images/landing.jpg')` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-warm-bg via-warm-bg/80 to-transparent" />
+
+          <div className="relative z-10 space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-warm-amber/20 border border-warm-amber/40 text-warm-amber text-xs font-bold uppercase tracking-wider">
+              <Flame size={14} className="fill-warm-amber" /> Web Tongkrongan Official
+            </div>
+            <h1 className="text-xl sm:text-3xl font-black text-warm-text tracking-tight">
+              Dashboard Sabung Win Rate
             </h1>
             <p className="text-xs sm:text-sm text-warm-muted">
-              Live player leaderboard, game win rates, and recent match metrics.
+              Halo <span className="text-warm-amber font-bold">{currentUser?.username || 'Member'}</span>! Pantau statistik live, leaderboard, dan piala kekalahan tongkrongan.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="absolute top-6 right-6 hidden sm:flex items-center gap-3">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex-1 sm:flex-none py-2.5 px-4 rounded-xl bg-warm-amber hover:bg-warm-amberHover text-warm-bg font-semibold text-sm transition shadow-lg shadow-warm-amber/15 flex items-center justify-center gap-2"
+              className="py-2.5 px-4 rounded-xl bg-warm-amber hover:bg-warm-amberHover text-warm-bg font-bold text-xs transition shadow-lg shadow-warm-amber/20 flex items-center justify-center gap-2"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               <span>Add Winrate</span>
             </button>
             <button
               onClick={() => setIsReportModalOpen(true)}
-              className="flex-1 sm:flex-none py-2.5 px-4 rounded-xl glass-warm border border-warm-border text-warm-text hover:border-warm-amber/50 font-medium text-sm transition flex items-center justify-center gap-2"
+              className="py-2.5 px-4 rounded-xl glass-warm border border-warm-border text-warm-text hover:border-warm-amber/50 font-semibold text-xs transition flex items-center justify-center gap-2"
             >
-              <FileText size={18} className="text-warm-amber" />
+              <FileText size={16} className="text-warm-amber" />
               <span>Generate Report</span>
             </button>
           </div>
+        </div>
+
+        {/* Mobile Action Buttons */}
+        <div className="flex sm:hidden items-center gap-3">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex-1 py-2.5 px-4 rounded-xl bg-warm-amber text-warm-bg font-bold text-xs flex items-center justify-center gap-2"
+          >
+            <Plus size={16} />
+            <span>Add Winrate</span>
+          </button>
+          <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="flex-1 py-2.5 px-4 rounded-xl glass-warm border border-warm-border text-warm-text font-semibold text-xs flex items-center justify-center gap-2"
+          >
+            <FileText size={16} className="text-warm-amber" />
+            <span>Generate Report</span>
+          </button>
         </div>
 
         {/* Highlight Cards Grid */}
@@ -245,23 +268,20 @@ export default function DashboardPage() {
             <>
               {/* Best Player Card */}
               <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-amber/40 transition-all duration-300 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 bg-warm-amber/5 rounded-bl-full pointer-events-none group-hover:bg-warm-amber/10 transition" />
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-warm-amber font-semibold text-sm">
                     <Trophy className="w-4 h-4" />
                     <span>Best Player</span>
                   </div>
-                  <div className="flex gap-1">
-                    <select
-                      value={leaderboardYear}
-                      onChange={(e) => setLeaderboardYear(e.target.value)}
-                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
-                    >
-                      <option value="2026">2026</option>
-                      <option value="2025">2025</option>
-                      <option value="all">All Time</option>
-                    </select>
-                  </div>
+                  <select
+                    value={leaderboardYear}
+                    onChange={(e) => setLeaderboardYear(e.target.value)}
+                    className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="all">All Time</option>
+                  </select>
                 </div>
 
                 <div className="text-center py-2 space-y-3">
@@ -301,7 +321,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Worst Player Card */}
-              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-crimson/40 transition-all duration-300 relative overflow-hidden group">
+              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-crimson/40 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-warm-crimson font-semibold text-sm">
                     <Skull className="w-4 h-4" />
@@ -353,16 +373,14 @@ export default function DashboardPage() {
                     <Trophy className="w-4 h-4 rotate-180" />
                     <span>Last Loser</span>
                   </div>
-                  <div className="flex gap-1">
-                    <select
-                      value={lastLoserYear}
-                      onChange={(e) => setLastLoserYear(e.target.value)}
-                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
-                    >
-                      <option value="2026">2026</option>
-                      <option value="2025">2025</option>
-                    </select>
-                  </div>
+                  <select
+                    value={lastLoserYear}
+                    onChange={(e) => setLastLoserYear(e.target.value)}
+                    className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                  </select>
                 </div>
 
                 <div className="text-center py-4 space-y-2">
@@ -412,7 +430,7 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <TableSkeleton rows={5} cols={6} />
+            <TableSkeleton rows={5} cols={7} />
           ) : (
             <div className="w-full overflow-x-auto rounded-2xl border border-warm-border glass-warm shadow-xl">
               <table className="w-full text-left text-sm">
@@ -442,15 +460,15 @@ export default function DashboardPage() {
                       >
                         <td className="py-3.5 px-4 text-center font-bold">
                           {idx === 0 ? (
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-amber/20 text-warm-amber border border-warm-amber/40 text-xs">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-amber/20 text-warm-amber border border-warm-amber/40 text-xs font-black">
                               1
                             </span>
                           ) : idx === 1 ? (
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-text/20 text-warm-text border border-warm-text/40 text-xs">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-text/20 text-warm-text border border-warm-text/40 text-xs font-black">
                               2
                             </span>
                           ) : idx === 2 ? (
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-terracotta/20 text-warm-terracotta border border-warm-terracotta/40 text-xs">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-terracotta/20 text-warm-terracotta border border-warm-terracotta/40 text-xs font-black">
                               3
                             </span>
                           ) : (
@@ -608,39 +626,36 @@ export default function DashboardPage() {
                       </td>
                     </tr>
                   ) : (
-                    paginatedGames.map((game, i) => {
-                      const isLoss = game.lose === 1 || game.lose === '0' ? false : game.lose === 1 || game.lose === '1';
-                      return (
-                        <tr
-                          key={game.id || i}
-                          className="hover:bg-warm-cardHover/50 transition-colors"
-                        >
-                          <td className="py-3.5 px-4 text-warm-muted font-medium text-xs">
-                            {formatGameDate(game.date)}
-                          </td>
-                          <td className="py-3.5 px-4 font-semibold text-warm-text">
-                            {game.name_player}
-                          </td>
-                          <td className="py-3.5 px-4 text-warm-muted text-xs">
-                            {game.name_place}
-                          </td>
-                          <td className="py-3.5 px-4 text-warm-muted text-xs">
-                            {game.name_game}
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            {game.lose === 1 || game.lose === '1' ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warm-crimson/15 text-warm-crimson border border-warm-crimson/30">
-                                Lose
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warm-emerald/15 text-warm-emerald border border-warm-emerald/30">
-                                Win
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
+                    paginatedGames.map((game, i) => (
+                      <tr
+                        key={game.id || i}
+                        className="hover:bg-warm-cardHover/50 transition-colors"
+                      >
+                        <td className="py-3.5 px-4 text-warm-muted font-medium text-xs">
+                          {formatGameDate(game.date)}
+                        </td>
+                        <td className="py-3.5 px-4 font-semibold text-warm-text">
+                          {game.name_player}
+                        </td>
+                        <td className="py-3.5 px-4 text-warm-muted text-xs">
+                          {game.name_place}
+                        </td>
+                        <td className="py-3.5 px-4 text-warm-muted text-xs">
+                          {game.name_game}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          {game.lose === 1 || game.lose === '1' ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warm-crimson/15 text-warm-crimson border border-warm-crimson/30">
+                              Lose
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warm-emerald/15 text-warm-emerald border border-warm-emerald/30">
+                              Win
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
