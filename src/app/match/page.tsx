@@ -6,7 +6,18 @@ import Sidebar from '@/components/layout/Sidebar';
 import AddWinrateModal from '@/components/dashboard/AddWinrateModal';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { fetchData, updateData, deleteData } from '@/lib/api';
-import { Gamepad2, Plus, Edit2, Trash2, Search, X, Filter, ChevronLeft, ChevronRight, AlertCircle, Calendar } from 'lucide-react';
+import { Gamepad2, Plus, Edit2, Trash2, Search, X, Filter, ChevronLeft, ChevronRight, AlertCircle, Calendar, MapPin, Users, Flame } from 'lucide-react';
+
+interface MatchSession {
+  sessionId: string;
+  date: string;
+  name_place: string;
+  name_game: string;
+  id_place?: string;
+  records: any[];
+  loser: any;
+  winners: any[];
+}
 
 export default function MatchPage() {
   const router = useRouter();
@@ -34,10 +45,16 @@ export default function MatchPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Edit/Delete target
-  const [editRecord, setEditRecord] = useState<any>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | string>('');
+  const [editSession, setEditSession] = useState<MatchSession | null>(null);
+  const [deleteSessionTarget, setDeleteSessionTarget] = useState<MatchSession | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Edit session form fields
+  const [editPlaceName, setEditPlaceName] = useState('');
+  const [editGameName, setEditGameName] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editLoserPlayerId, setEditLoserPlayerId] = useState('');
 
   useEffect(() => {
     const stored = localStorage.getItem('loggedInUser');
@@ -73,40 +90,138 @@ export default function MatchPage() {
     }
   };
 
+  // Group raw records into Match Sessions (Grouped by date + place + game)
+  const groupedSessionsMap = new Map<string, MatchSession>();
+
+  matches.forEach((rec) => {
+    // Session key based on date + place + game
+    const dateKey = rec.date ? rec.date.trim() : 'no-date';
+    const placeKey = rec.name_place ? rec.name_place.trim() : 'no-place';
+    const gameKey = rec.name_game ? rec.name_game.trim() : 'no-game';
+    const sessionId = `${dateKey}___${placeKey}___${gameKey}`;
+
+    if (!groupedSessionsMap.has(sessionId)) {
+      groupedSessionsMap.set(sessionId, {
+        sessionId,
+        date: rec.date,
+        name_place: rec.name_place,
+        name_game: rec.name_game,
+        id_place: rec.id_place,
+        records: [],
+        loser: null,
+        winners: [],
+      });
+    }
+
+    const session = groupedSessionsMap.get(sessionId)!;
+    session.records.push(rec);
+
+    if (rec.lose === 1 || rec.lose === '1') {
+      session.loser = rec;
+    } else {
+      session.winners.push(rec);
+    }
+  });
+
+  const allSessions = Array.from(groupedSessionsMap.values());
+
+  // Filter Logic on Sessions
+  let filteredSessions = [...allSessions];
+
+  if (search) {
+    const q = search.toLowerCase();
+    filteredSessions = filteredSessions.filter((s) => {
+      const playerMatch = s.records.some((r) => r.name_player && r.name_player.toLowerCase().includes(q));
+      const placeMatch = s.name_place && s.name_place.toLowerCase().includes(q);
+      const gameMatch = s.name_game && s.name_game.toLowerCase().includes(q);
+      return playerMatch || placeMatch || gameMatch;
+    });
+  }
+
+  if (filterPlayer) {
+    filteredSessions = filteredSessions.filter((s) =>
+      s.records.some((r) => r.id_player === filterPlayer)
+    );
+  }
+  if (filterPlace) {
+    filteredSessions = filteredSessions.filter((s) => s.id_place === filterPlace || s.records.some((r) => r.id_place === filterPlace));
+  }
+  if (filterGame) {
+    const gObj = games.find((g) => g.id_game === filterGame);
+    if (gObj) {
+      filteredSessions = filteredSessions.filter((s) => s.name_game === gObj.name_game);
+    }
+  }
+  if (filterStartDate) {
+    filteredSessions = filteredSessions.filter((s) => {
+      const dateStr = new Date(s.date).toISOString().split('T')[0];
+      return dateStr >= filterStartDate;
+    });
+  }
+  if (filterEndDate) {
+    filteredSessions = filteredSessions.filter((s) => {
+      const dateStr = new Date(s.date).toISOString().split('T')[0];
+      return dateStr <= filterEndDate;
+    });
+  }
+
+  // Sort Sessions by Date Descending
+  const sortedSessions = filteredSessions.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sortedSessions.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSessions = sortedSessions.slice(startIndex, startIndex + itemsPerPage);
+
+  const openEditModal = (session: MatchSession) => {
+    setEditSession(session);
+    setEditPlaceName(session.name_place || '');
+    setEditGameName(session.name_game || '');
+    setEditDate(session.date || '');
+    setEditLoserPlayerId(session.loser ? session.loser.id_player : '');
+    setError('');
+    setShowEditModal(true);
+  };
+
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editRecord) return;
+    if (!editSession) return;
     setSubmitting(true);
     setError('');
 
     try {
-      await updateData('Data', editRecord.id, {
-        name_player: editRecord.name_player,
-        name_place: editRecord.name_place,
-        name_game: editRecord.name_game,
-        lose: parseInt(editRecord.lose),
-        date: editRecord.date,
-        id_player: editRecord.id_player,
-        id_place: editRecord.id_place,
-      });
+      // Update each record in the session
+      for (const rec of editSession.records) {
+        const isLoser = rec.id_player === editLoserPlayerId;
+        await updateData('Data', rec.id, {
+          name_place: editPlaceName,
+          name_game: editGameName,
+          date: editDate,
+          lose: isLoser ? 1 : 0,
+        });
+      }
+
       setShowEditModal(false);
-      setEditRecord(null);
+      setEditSession(null);
       loadAllData();
     } catch (err: any) {
       console.error(err);
-      setError('Failed to update match record');
+      setError('Failed to update match session');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTargetId) return;
+  const handleDeleteSession = async () => {
+    if (!deleteSessionTarget) return;
     setSubmitting(true);
     try {
-      await deleteData('Data', deleteTargetId);
+      for (const rec of deleteSessionTarget.records) {
+        await deleteData('Data', rec.id);
+      }
       setShowDeleteModal(false);
-      setDeleteTargetId('');
+      setDeleteSessionTarget(null);
       loadAllData();
     } catch (e) {
       console.error(e);
@@ -114,51 +229,6 @@ export default function MatchPage() {
       setSubmitting(false);
     }
   };
-
-  // Filter & Search Logic
-  let filtered = [...matches];
-
-  if (search) {
-    const query = search.toLowerCase();
-    filtered = filtered.filter(
-      (m) =>
-        (m.name_player && m.name_player.toLowerCase().includes(query)) ||
-        (m.name_place && m.name_place.toLowerCase().includes(query)) ||
-        (m.name_game && m.name_game.toLowerCase().includes(query)) ||
-        (m.id && m.id.toString().includes(query))
-    );
-  }
-
-  if (filterPlayer) {
-    filtered = filtered.filter((m) => m.id_player === filterPlayer);
-  }
-  if (filterPlace) {
-    filtered = filtered.filter((m) => m.id_place === filterPlace);
-  }
-  if (filterGame) {
-    const gObj = games.find((g) => g.id_game === filterGame);
-    if (gObj) filtered = filtered.filter((m) => m.name_game === gObj.name_game);
-  }
-  if (filterStartDate) {
-    filtered = filtered.filter((m) => {
-      const dateStr = new Date(m.date).toISOString().split('T')[0];
-      return dateStr >= filterStartDate;
-    });
-  }
-  if (filterEndDate) {
-    filtered = filtered.filter((m) => {
-      const dateStr = new Date(m.date).toISOString().split('T')[0];
-      return dateStr <= filterEndDate;
-    });
-  }
-
-  const sortedMatches = filtered.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-
-  const totalPages = Math.max(1, Math.ceil(sortedMatches.length / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedMatches = sortedMatches.slice(startIndex, startIndex + itemsPerPage);
 
   const formatGameDate = (dateStr: string) => {
     if (!dateStr) return '-';
@@ -184,10 +254,10 @@ export default function MatchPage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pb-2 border-b border-warm-border/60">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-warm-text tracking-tight flex items-center gap-2">
-              <Gamepad2 className="w-6 h-6 text-warm-amber" /> Match Management
+              <Gamepad2 className="w-6 h-6 text-warm-amber" /> Grouped Match Management
             </h1>
             <p className="text-xs sm:text-sm text-warm-muted">
-              Kelola, edit, dan hapus riwayat hasil pertandingan (match records) tongkrongan.
+              Kelola, edit, dan hapus sesi pertandingan yang terkelompokan (*grouped by session*).
             </p>
           </div>
 
@@ -217,7 +287,7 @@ export default function MatchPage() {
               />
             </div>
             <div className="text-xs font-semibold uppercase tracking-wider text-warm-amber flex items-center gap-1.5">
-              <Filter size={14} /> Total {sortedMatches.length} Matches Found
+              <Filter size={14} /> {sortedSessions.length} Grouped Match Sessions
             </div>
           </div>
 
@@ -307,95 +377,105 @@ export default function MatchPage() {
           </div>
         </div>
 
-        {/* Table Display */}
+        {/* Grouped Match Sessions Cards / List */}
         {loading ? (
-          <TableSkeleton rows={5} cols={6} />
+          <TableSkeleton rows={5} cols={5} />
         ) : (
-          <div className="w-full overflow-x-auto rounded-2xl border border-warm-border glass-warm shadow-xl">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-warm-bg/60 border-b border-warm-border text-xs uppercase tracking-wider text-warm-muted">
-                <tr>
-                  <th className="py-3.5 px-4 font-semibold w-16">ID</th>
-                  <th className="py-3.5 px-4 font-semibold">Date & Time</th>
-                  <th className="py-3.5 px-4 font-semibold">Player</th>
-                  <th className="py-3.5 px-4 font-semibold">Place</th>
-                  <th className="py-3.5 px-4 font-semibold">Game</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Result</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-warm-border/40">
-                {paginatedMatches.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-warm-muted text-sm">
-                      No match records found
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedMatches.map((m) => (
-                    <tr key={m.id} className="hover:bg-warm-cardHover/50 transition">
-                      <td className="py-3.5 px-4 font-semibold text-warm-amber text-xs notranslate" translate="no">
-                        #{m.id}
-                      </td>
-                      <td className="py-3.5 px-4 text-warm-muted font-medium text-xs notranslate" translate="no">
-                        {formatGameDate(m.date)}
-                      </td>
-                      <td className="py-3.5 px-4 font-semibold text-warm-text">
-                        {m.name_player}
-                      </td>
-                      <td className="py-3.5 px-4 text-warm-muted text-xs">
-                        {m.name_place}
-                      </td>
-                      <td className="py-3.5 px-4 text-warm-muted text-xs">
-                        {m.name_game}
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        {m.lose === 1 || m.lose === '1' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warm-crimson/15 text-warm-crimson border border-warm-crimson/30">
-                            Lose
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warm-emerald/15 text-warm-emerald border border-warm-emerald/30">
-                            Win
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setEditRecord({ ...m });
-                              setShowEditModal(true);
-                            }}
-                            className="p-1.5 rounded-lg border border-warm-border text-warm-amber hover:bg-warm-amber/10 transition"
-                            title="Edit Match"
+          <div className="space-y-4">
+            {paginatedSessions.length === 0 ? (
+              <div className="glass-warm p-8 text-center rounded-2xl border border-warm-border text-warm-muted text-sm">
+                Tidak ada sesi pertandingan ditemukan.
+              </div>
+            ) : (
+              paginatedSessions.map((session) => (
+                <div
+                  key={session.sessionId}
+                  className="glass-warm rounded-2xl border border-warm-border p-5 hover:border-warm-amber/30 transition-all shadow-lg space-y-4"
+                >
+                  {/* Session Header Info */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-warm-border/50">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs text-warm-amber font-semibold bg-warm-amber/10 px-3 py-1 rounded-full border border-warm-amber/30 notranslate" translate="no">
+                        <Calendar size={14} />
+                        <span>{formatGameDate(session.date)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-xs text-warm-text font-medium bg-warm-card px-3 py-1 rounded-full border border-warm-border">
+                        <MapPin size={14} className="text-warm-amber" />
+                        <span>{session.name_place || 'No Place'}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-xs text-warm-gold font-medium bg-warm-card px-3 py-1 rounded-full border border-warm-border">
+                        <Gamepad2 size={14} className="text-warm-gold" />
+                        <span>{session.name_game || 'Game'}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions for entire session */}
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <button
+                        onClick={() => openEditModal(session)}
+                        className="py-1.5 px-3 rounded-xl border border-warm-amber/40 text-warm-amber hover:bg-warm-amber/10 text-xs font-semibold flex items-center gap-1.5 transition"
+                      >
+                        <Edit2 size={14} />
+                        <span>Edit Session</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteSessionTarget(session);
+                          setShowDeleteModal(true);
+                        }}
+                        className="py-1.5 px-3 rounded-xl border border-warm-crimson/40 text-warm-crimson hover:bg-warm-crimson/10 text-xs font-semibold flex items-center gap-1.5 transition"
+                      >
+                        <Trash2 size={14} />
+                        <span>Delete Session</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Players in this Grouped Match Session */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] uppercase tracking-wider text-warm-subtle font-semibold flex items-center gap-1">
+                      <Users size={12} className="text-warm-amber" /> Participating Players ({session.records.length})
+                    </span>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {session.records.map((r) => {
+                        const isLoser = r.lose === 1 || r.lose === '1';
+                        return (
+                          <div
+                            key={r.id}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
+                              isLoser
+                                ? 'bg-warm-crimson/15 text-warm-crimson border-warm-crimson/30 shadow-sm shadow-warm-crimson/10'
+                                : 'bg-warm-emerald/15 text-warm-emerald border-warm-emerald/30'
+                            }`}
                           >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDeleteTargetId(m.id);
-                              setShowDeleteModal(true);
-                            }}
-                            className="p-1.5 rounded-lg border border-warm-border text-warm-crimson hover:bg-warm-crimson/10 transition"
-                            title="Delete Match"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                            <span>{r.name_player}</span>
+                            <span
+                              className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase ${
+                                isLoser
+                                  ? 'bg-warm-crimson text-white'
+                                  : 'bg-warm-emerald/30 text-warm-emerald'
+                              }`}
+                            >
+                              {isLoser ? 'Lose' : 'Win'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
 
             {/* Pagination Controls */}
-            <div className="p-4 border-t border-warm-border flex items-center justify-between text-xs text-warm-muted">
+            <div className="p-4 border-t border-warm-border flex items-center justify-between text-xs text-warm-muted glass-warm rounded-2xl">
               <span>
-                Showing {sortedMatches.length > 0 ? startIndex + 1 : 0} to{' '}
-                {Math.min(startIndex + itemsPerPage, sortedMatches.length)} of{' '}
-                {sortedMatches.length} matches
+                Showing {sortedSessions.length > 0 ? startIndex + 1 : 0} to{' '}
+                {Math.min(startIndex + itemsPerPage, sortedSessions.length)} of{' '}
+                {sortedSessions.length} sessions
               </span>
 
               <div className="flex items-center gap-1.5">
@@ -422,12 +502,12 @@ export default function MatchPage() {
         )}
       </main>
 
-      {/* Edit Match Modal */}
-      {showEditModal && editRecord && (
+      {/* Edit Session Modal */}
+      {showEditModal && editSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
           <div className="glass-warm w-full max-w-md rounded-2xl p-6 border border-warm-border shadow-2xl space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-warm-border">
-              <h3 className="font-bold text-warm-text text-lg">Edit Match #{editRecord.id}</h3>
+              <h3 className="font-bold text-warm-text text-lg">Edit Grouped Match Session</h3>
               <button onClick={() => setShowEditModal(false)} className="text-warm-subtle hover:text-warm-text">
                 <X size={20} />
               </button>
@@ -439,59 +519,49 @@ export default function MatchPage() {
             )}
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="text-xs text-warm-muted block mb-1">Player Name</label>
+                <label className="text-xs text-warm-muted block mb-1">Place Location</label>
                 <input
                   type="text"
                   required
-                  value={editRecord.name_player}
-                  onChange={(e) => setEditRecord({ ...editRecord, name_player: e.target.value })}
+                  value={editPlaceName}
+                  onChange={(e) => setEditPlaceName(e.target.value)}
                   className="w-full py-2 px-3 rounded-xl bg-warm-bg border border-warm-border text-warm-text text-xs focus:outline-none focus:border-warm-amber"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-warm-muted block mb-1">Place Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={editRecord.name_place}
-                    onChange={(e) => setEditRecord({ ...editRecord, name_place: e.target.value })}
-                    className="w-full py-2 px-3 rounded-xl bg-warm-bg border border-warm-border text-warm-text text-xs focus:outline-none focus:border-warm-amber"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-warm-muted block mb-1">Game Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={editRecord.name_game}
-                    onChange={(e) => setEditRecord({ ...editRecord, name_game: e.target.value })}
-                    className="w-full py-2 px-3 rounded-xl bg-warm-bg border border-warm-border text-warm-text text-xs focus:outline-none focus:border-warm-amber"
-                  />
-                </div>
+              <div>
+                <label className="text-xs text-warm-muted block mb-1">Game Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editGameName}
+                  onChange={(e) => setEditGameName(e.target.value)}
+                  className="w-full py-2 px-3 rounded-xl bg-warm-bg border border-warm-border text-warm-text text-xs focus:outline-none focus:border-warm-amber"
+                />
               </div>
 
               <div>
-                <label className="text-xs text-warm-muted block mb-1">Result Status</label>
+                <label className="text-xs text-warm-muted block mb-1">Select Loser in Session</label>
                 <select
-                  value={editRecord.lose}
-                  onChange={(e) => setEditRecord({ ...editRecord, lose: e.target.value })}
+                  value={editLoserPlayerId}
+                  onChange={(e) => setEditLoserPlayerId(e.target.value)}
                   className="w-full py-2 px-3 rounded-xl bg-warm-bg border border-warm-border text-warm-text text-xs focus:outline-none focus:border-warm-amber"
                 >
-                  <option value={0}>Win (Menang)</option>
-                  <option value={1}>Lose (Kalah)</option>
+                  {editSession.records.map((r) => (
+                    <option key={r.id_player} value={r.id_player}>
+                      {r.name_player} ({r.id_player})
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-xs text-warm-muted block mb-1">Date & Time</label>
+                <label className="text-xs text-warm-muted block mb-1">Date & Time (WIB)</label>
                 <input
                   type="text"
                   required
-                  value={editRecord.date}
-                  onChange={(e) => setEditRecord({ ...editRecord, date: e.target.value })}
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
                   className="w-full py-2 px-3 rounded-xl bg-warm-bg border border-warm-border text-warm-text text-xs focus:outline-none focus:border-warm-amber font-mono"
                 />
               </div>
@@ -509,7 +579,7 @@ export default function MatchPage() {
                   disabled={submitting}
                   className="flex-1 py-2.5 rounded-xl bg-warm-amber text-warm-bg font-semibold text-sm hover:bg-warm-amberHover"
                 >
-                  {submitting ? 'Updating...' : 'Update Match'}
+                  {submitting ? 'Updating...' : 'Update Session'}
                 </button>
               </div>
             </form>
@@ -517,16 +587,17 @@ export default function MatchPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {/* Delete Session Confirmation Modal */}
+      {showDeleteModal && deleteSessionTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
           <div className="glass-warm w-full max-w-sm rounded-2xl p-6 border border-warm-border shadow-2xl space-y-4 text-center">
             <div className="mx-auto w-12 h-12 rounded-full bg-warm-crimson/10 flex items-center justify-center text-warm-crimson">
               <Trash2 size={24} />
             </div>
-            <h3 className="text-lg font-bold text-warm-text">Delete Match Record</h3>
+            <h3 className="text-lg font-bold text-warm-text">Delete Grouped Session</h3>
             <p className="text-sm text-warm-muted">
-              Are you sure you want to delete match record <span className="text-warm-amber font-semibold">#{deleteTargetId}</span>?
+              Hapus seluruh sesi match ini ({deleteSessionTarget.records.length} pemain) pada tanggal{' '}
+              <span className="text-warm-amber font-semibold">{formatGameDate(deleteSessionTarget.date)}</span>?
             </p>
             <div className="flex gap-3 pt-2">
               <button
@@ -536,11 +607,11 @@ export default function MatchPage() {
                 Cancel
               </button>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteSession}
                 disabled={submitting}
                 className="flex-1 py-2.5 rounded-xl bg-warm-crimson text-white font-semibold text-sm hover:bg-red-600"
               >
-                {submitting ? 'Deleting...' : 'Yes, Delete'}
+                {submitting ? 'Deleting...' : 'Yes, Delete Session'}
               </button>
             </div>
           </div>
