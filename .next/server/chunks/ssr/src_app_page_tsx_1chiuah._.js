@@ -1,0 +1,3 @@
+module.exports=[40777,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944);a.s(["default",0,function(){let a=(0,d.useRouter)();return(0,c.useEffect)(()=>{localStorage.getItem("loggedInUser")?a.replace("/dashboard"):a.replace("/login")},[a]),(0,b.jsx)("div",{className:"min-h-screen flex items-center justify-center bg-warm-bg text-warm-amber font-semibold text-sm",children:(0,b.jsxs)("div",{className:"flex items-center gap-2",children:[(0,b.jsx)("span",{className:"w-4 h-4 border-2 border-warm-amber border-t-transparent rounded-full animate-spin"}),(0,b.jsx)("span",{children:"Loading Sabung Win Rate..."})]})})}])}];
+
+//# sourceMappingURL=src_app_page_tsx_1chiuah._.js.map

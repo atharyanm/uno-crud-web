@@ -1,0 +1,12 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/rest/[table]/route": "app/api/rest/[table]/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/game/page": "app/game/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/place/page": "app/place/page.js",
+  "/player/page": "app/player/page.js",
+  "/user/page": "app/user/page.js"
+}

@@ -1,0 +1,12 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/rest/[table]/route": "/api/rest/[table]",
+  "/dashboard/page": "/dashboard",
+  "/game/page": "/game",
+  "/login/page": "/login",
+  "/page": "/",
+  "/place/page": "/place",
+  "/player/page": "/player",
+  "/user/page": "/user"
+}

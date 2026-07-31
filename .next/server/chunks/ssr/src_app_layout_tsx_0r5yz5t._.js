@@ -1,0 +1,3 @@
+module.exports=[27572,a=>{"use strict";var b=a.i(7997);a.s(["default",0,function({children:a}){return(0,b.jsx)("html",{lang:"en",className:"dark",children:(0,b.jsx)("body",{className:"bg-warm-bg text-warm-text min-h-screen selection:bg-warm-amber selection:text-warm-bg",children:a})})},"metadata",0,{title:"Sabung Win Rate Calculator",description:"Track your game statistics and win rate analytics with custom player reports."}])},50645,a=>{a.n(a.i(27572))}];
+
+//# sourceMappingURL=src_app_layout_tsx_0r5yz5t._.js.map
