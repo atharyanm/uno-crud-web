@@ -1,6 +1,7 @@
 // koneksi.js - API connection to Neon PostgreSQL backend
-const SUPABASE_URL = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' && window.location.origin !== 'file://') ? window.location.origin : 'http://localhost:8000';
+const SUPABASE_URL = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' && window.location.origin !== 'file://' && (window.location.port === '8000' || (!['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.hostname !== ''))) ? window.location.origin : 'http://localhost:8000';
 const SUPABASE_ANON_KEY = 'neon';
+
 
 
 async function fetchData(table) {
