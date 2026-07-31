@@ -3,26 +3,26 @@ const SUPABASE_URL = (typeof window !== 'undefined' && window.location.origin &&
 const SUPABASE_ANON_KEY = 'neon';
 
 // Client-side cache
-if (typeof window.dataCache === 'undefined') {
-    window.dataCache = new Map();
+if (typeof window.neonApiCache === 'undefined') {
+    window.neonApiCache = new Map();
 }
-var dataCache = window.dataCache;
+var neonApiCache = window.neonApiCache;
 const CACHE_TTL_MS = 15000; // 15 seconds
 
 
 function clearClientCache(table) {
     if (table) {
-        dataCache.delete(table);
+        neonApiCache.delete(table);
     } else {
-        dataCache.clear();
+        neonApiCache.clear();
     }
 }
 
 async function fetchData(table, forceRefresh = false) {
     try {
         const now = Date.now();
-        if (!forceRefresh && dataCache.has(table)) {
-            const entry = dataCache.get(table);
+        if (!forceRefresh && neonApiCache.has && neonApiCache.has(table)) {
+            const entry = neonApiCache.get(table);
             if (now - entry.timestamp < CACHE_TTL_MS) {
                 console.log(`⚡ Using client cached data for table: ${table} (${entry.data.length} records)`);
                 return entry.data;
@@ -42,7 +42,9 @@ async function fetchData(table, forceRefresh = false) {
         if (!response.ok) throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
 
         const data = await response.json();
-        dataCache.set(table, { timestamp: now, data: data });
+        if (neonApiCache.set) {
+            neonApiCache.set(table, { timestamp: now, data: data });
+        }
         console.log(`✅ Successfully fetched ${data.length} total records from table '${table}'`);
         return data;
     } catch (error) {
