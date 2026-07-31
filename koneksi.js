@@ -1,6 +1,7 @@
-// koneksi.js - API connection to Supabase
-const SUPABASE_URL = 'https://vbgiivtovglbddxkfmhv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZ2lpdnRvdmdsYmRkeGtmbWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNjM3ODgsImV4cCI6MjA3NzcyMzc4OH0.pCLOjFEywBj8BU0-9F1JcQ4ro3jccz38oRYy1GTAMOU';
+// koneksi.js - API connection to Neon PostgreSQL backend
+const SUPABASE_URL = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' && window.location.origin !== 'file://') ? window.location.origin : 'http://localhost:8000';
+const SUPABASE_ANON_KEY = 'neon';
+
 
 async function fetchData(table) {
     try {
