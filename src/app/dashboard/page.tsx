@@ -20,7 +20,8 @@ import {
   Gamepad2,
   Flame,
   Search,
-  Users
+  Users,
+  Calendar
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -38,9 +39,11 @@ export default function DashboardPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  // Filters
-  const [leaderboardYear, setLeaderboardYear] = useState('2026');
+  // Season & Game Filters for Leaderboard
+  const [leaderboardSeason, setLeaderboardSeason] = useState('current');
   const [leaderboardGame, setLeaderboardGame] = useState('all');
+
+  // Last Loser Filter
   const [lastLoserYear, setLastLoserYear] = useState('2026');
   const [lastLoserGame, setLastLoserGame] = useState('');
 
@@ -87,13 +90,20 @@ export default function DashboardPage() {
     }
   };
 
-  // Compute Leaderboard
+  // Compute Leaderboard by Season & Game
   let filteredData = dataRecords;
-  if (leaderboardYear !== 'all') {
+
+  if (leaderboardSeason === 'current') {
+    const currentYr = new Date().getFullYear().toString(); // '2026'
     filteredData = filteredData.filter(
-      (d) => new Date(d.date).getFullYear().toString() === leaderboardYear
+      (d) => new Date(d.date).getFullYear().toString() === currentYr
+    );
+  } else if (leaderboardSeason !== 'all_time') {
+    filteredData = filteredData.filter(
+      (d) => new Date(d.date).getFullYear().toString() === leaderboardSeason
     );
   }
+
   if (leaderboardGame !== 'all') {
     const targetGame = games.find((g) => g.id_game === leaderboardGame);
     if (targetGame) {
@@ -216,7 +226,7 @@ export default function DashboardPage() {
               Dashboard Sabung Win Rate
             </h1>
             <p className="text-xs sm:text-sm text-warm-muted">
-              Halo <span className="text-warm-amber font-bold">{currentUser?.username || 'Member'}</span>! Pantau statistik live, leaderboard, dan piala kekalahan tongkrongan.
+              Halo <span className="text-warm-amber font-bold">{currentUser?.username || 'Member'}</span>! Pantau statistik live, leaderboard season, dan piala kekalahan tongkrongan.
             </p>
           </div>
 
@@ -273,14 +283,16 @@ export default function DashboardPage() {
                     <Trophy className="w-4 h-4" />
                     <span>Best Player</span>
                   </div>
+                  {/* Season Filter Dropdown */}
                   <select
-                    value={leaderboardYear}
-                    onChange={(e) => setLeaderboardYear(e.target.value)}
-                    className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
+                    value={leaderboardSeason}
+                    onChange={(e) => setLeaderboardSeason(e.target.value)}
+                    className="py-1 px-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text focus:outline-none focus:border-warm-amber"
                   >
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                    <option value="all">All Time</option>
+                    <option value="current">Current Season</option>
+                    <option value="2026">Tahun 2026</option>
+                    <option value="2025">Tahun 2025</option>
+                    <option value="all_time">All Time</option>
                   </select>
                 </div>
 
@@ -376,10 +388,10 @@ export default function DashboardPage() {
                   <select
                     value={lastLoserYear}
                     onChange={(e) => setLastLoserYear(e.target.value)}
-                    className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
+                    className="py-1 px-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
                   >
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
+                    <option value="2026">Tahun 2026</option>
+                    <option value="2025">Tahun 2025</option>
                   </select>
                 </div>
 
@@ -405,7 +417,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Leaderboard Table */}
+        {/* Leaderboard Table Section */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
@@ -413,19 +425,37 @@ export default function DashboardPage() {
               <span>Player Leaderboard</span>
             </h2>
 
+            {/* Leaderboard Season & Game Filters */}
             <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={leaderboardGame}
-                onChange={(e) => setLeaderboardGame(e.target.value)}
-                className="py-2 px-3 rounded-xl bg-warm-card border border-warm-border text-xs font-medium text-warm-text focus:outline-none focus:border-warm-amber"
-              >
-                <option value="all">All Games</option>
-                {games.map((g) => (
-                  <option key={g.id_game} value={g.id_game}>
-                    {g.name_game}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5 bg-warm-card border border-warm-border rounded-xl px-3 py-1.5">
+                <Calendar size={14} className="text-warm-amber" />
+                <select
+                  value={leaderboardSeason}
+                  onChange={(e) => setLeaderboardSeason(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-warm-text focus:outline-none cursor-pointer"
+                >
+                  <option value="current">Current Season</option>
+                  <option value="2026">Tahun 2026</option>
+                  <option value="2025">Tahun 2025</option>
+                  <option value="all_time">All Time</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-warm-card border border-warm-border rounded-xl px-3 py-1.5">
+                <Gamepad2 size={14} className="text-warm-amber" />
+                <select
+                  value={leaderboardGame}
+                  onChange={(e) => setLeaderboardGame(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-warm-text focus:outline-none cursor-pointer"
+                >
+                  <option value="all">All Games</option>
+                  {games.map((g) => (
+                    <option key={g.id_game} value={g.id_game}>
+                      {g.name_game}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -449,7 +479,7 @@ export default function DashboardPage() {
                   {leaderboard.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-8 text-center text-warm-muted text-sm">
-                        No leaderboard data available
+                        No leaderboard data available for selected season
                       </td>
                     </tr>
                   ) : (
