@@ -39,13 +39,19 @@ export default function DashboardPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  // Season & Game Filters for Leaderboard (Klasemen)
+  // Independent Card Filters (Season + Game Comboboxes)
+  const [bestPlayerSeason, setBestPlayerSeason] = useState('current');
+  const [bestPlayerGame, setBestPlayerGame] = useState('all');
+
+  const [worstPlayerSeason, setWorstPlayerSeason] = useState('current');
+  const [worstPlayerGame, setWorstPlayerGame] = useState('all');
+
+  const [lastLoserSeason, setLastLoserSeason] = useState('current');
+  const [lastLoserGame, setLastLoserGame] = useState('all');
+
+  // Season & Game Filters for Klasemen Table
   const [leaderboardSeason, setLeaderboardSeason] = useState('current');
   const [leaderboardGame, setLeaderboardGame] = useState('all');
-
-  // Last Loser Filter
-  const [lastLoserSeason, setLastLoserSeason] = useState('current');
-  const [lastLoserGame, setLastLoserGame] = useState('');
 
   // Recent Games Filters & Pagination
   const [filterPlayer, setFilterPlayer] = useState('');
@@ -79,10 +85,6 @@ export default function DashboardPage() {
       setPlaces(pl);
       setGames(g);
       setDataRecords(d);
-
-      const uno = g.find((game) => game.name_game.toLowerCase() === 'uno');
-      if (uno) setLastLoserGame(uno.id_game);
-      else if (g.length > 0) setLastLoserGame(g[0].id_game);
     } catch (err) {
       console.error(err);
     } finally {
@@ -90,57 +92,59 @@ export default function DashboardPage() {
     }
   };
 
-  // Compute Klasemen / Leaderboard by Season & Game
-  let filteredData = dataRecords;
+  // Helper calculation function for player stats based on season and game
+  const computeCardStats = (seasonStr: string, gameIdStr: string) => {
+    let filtered = dataRecords;
 
-  if (leaderboardSeason === 'current') {
-    const currentYr = new Date().getFullYear().toString(); // '2026'
-    filteredData = filteredData.filter(
-      (d) => new Date(d.date).getFullYear().toString() === currentYr
-    );
-  } else if (leaderboardSeason !== 'all_time') {
-    filteredData = filteredData.filter(
-      (d) => new Date(d.date).getFullYear().toString() === leaderboardSeason
-    );
-  }
-
-  if (leaderboardGame !== 'all') {
-    const targetGame = games.find((g) => g.id_game === leaderboardGame);
-    if (targetGame) {
-      filteredData = filteredData.filter((d) => d.name_game === targetGame.name_game);
+    if (seasonStr === 'current') {
+      const currentYr = new Date().getFullYear().toString();
+      filtered = filtered.filter((d) => new Date(d.date).getFullYear().toString() === currentYr);
+    } else if (seasonStr !== 'all_time') {
+      filtered = filtered.filter((d) => new Date(d.date).getFullYear().toString() === seasonStr);
     }
-  }
 
-  const playerStats: Record<string, { name: string; wins: number; losses: number; points: number }> = {};
-  players.forEach((p) => {
-    playerStats[p.id_player] = { name: p.name, wins: 0, losses: 0, points: 0 };
-  });
-
-  filteredData.forEach((d) => {
-    if (playerStats[d.id_player]) {
-      if (d.lose === 0 || d.lose === '0') {
-        playerStats[d.id_player].wins += 1;
-        playerStats[d.id_player].points += 3;
-      } else {
-        playerStats[d.id_player].losses += 1;
-        playerStats[d.id_player].points -= 1;
+    if (gameIdStr !== 'all') {
+      const targetGame = games.find((g) => g.id_game === gameIdStr);
+      if (targetGame) {
+        filtered = filtered.filter((d) => d.name_game === targetGame.name_game);
       }
     }
-  });
 
-  const leaderboard = Object.values(playerStats)
-    .map((s) => {
-      const total = s.wins + s.losses;
-      const winrate = total > 0 ? (s.wins / total) * 100 : 0;
-      return { ...s, total, winrate };
-    })
-    .sort((a, b) => (b.points !== a.points ? b.points - a.points : b.winrate - a.winrate));
+    const stats: Record<string, { name: string; wins: number; losses: number; points: number }> = {};
+    players.forEach((p) => {
+      stats[p.id_player] = { name: p.name, wins: 0, losses: 0, points: 0 };
+    });
 
-  const bestPlayer = leaderboard.length > 0 ? leaderboard[0] : null;
-  const playersWithGames = leaderboard.filter((p) => p.total > 0);
-  const worstPlayer = playersWithGames.length > 0 ? playersWithGames[playersWithGames.length - 1] : null;
+    filtered.forEach((d) => {
+      if (stats[d.id_player]) {
+        if (d.lose === 0 || d.lose === '0') {
+          stats[d.id_player].wins += 1;
+          stats[d.id_player].points += 3;
+        } else {
+          stats[d.id_player].losses += 1;
+          stats[d.id_player].points -= 1;
+        }
+      }
+    });
 
-  // Compute Last Loser
+    return Object.values(stats)
+      .map((s) => {
+        const total = s.wins + s.losses;
+        const winrate = total > 0 ? (s.wins / total) * 100 : 0;
+        return { ...s, total, winrate };
+      })
+      .sort((a, b) => (b.points !== a.points ? b.points - a.points : b.winrate - a.winrate));
+  };
+
+  // Best Player Card Computation
+  const bestList = computeCardStats(bestPlayerSeason, bestPlayerGame);
+  const bestPlayer = bestList.length > 0 && bestList[0].total > 0 ? bestList[0] : null;
+
+  // Worst Player Card Computation
+  const worstList = computeCardStats(worstPlayerSeason, worstPlayerGame).filter((p) => p.total > 0);
+  const worstPlayer = worstList.length > 0 ? worstList[worstList.length - 1] : null;
+
+  // Last Loser Card Computation
   let lastLoser: any = null;
   const loserFiltered = dataRecords.filter((d) => {
     const yr = new Date(d.date).getFullYear().toString();
@@ -151,9 +155,10 @@ export default function DashboardPage() {
         : lastLoserSeason === 'all_time'
         ? true
         : yr === lastLoserSeason;
-    const gameMatch = lastLoserGame
-      ? d.name_game === games.find((g) => g.id_game === lastLoserGame)?.name_game
-      : true;
+    const gameMatch =
+      lastLoserGame === 'all' || !lastLoserGame
+        ? true
+        : d.name_game === games.find((g) => g.id_game === lastLoserGame)?.name_game;
     return seasonMatch && gameMatch && (d.lose === 1 || d.lose === '1');
   });
 
@@ -161,6 +166,9 @@ export default function DashboardPage() {
     const sortedLosers = loserFiltered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     lastLoser = sortedLosers[0];
   }
+
+  // Klasemen Table Computation
+  const leaderboard = computeCardStats(leaderboardSeason, leaderboardGame);
 
   // Filter Recent Games
   let recentGames = [...dataRecords];
@@ -284,26 +292,42 @@ export default function DashboardPage() {
           ) : (
             <>
               {/* Best Player Card */}
-              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-amber/40 transition-all duration-300 relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-4">
+              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-amber/40 transition-all duration-300 relative overflow-hidden group space-y-4">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-warm-amber font-semibold text-sm">
                     <Trophy className="w-4 h-4" />
                     <span>Best Player</span>
                   </div>
-                  {/* Season Filter Dropdown */}
-                  <select
-                    value={leaderboardSeason}
-                    onChange={(e) => setLeaderboardSeason(e.target.value)}
-                    className="py-1 px-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text focus:outline-none focus:border-warm-amber"
-                  >
-                    <option value="current">Current Season</option>
-                    <option value="2026">Tahun 2026</option>
-                    <option value="2025">Tahun 2025</option>
-                    <option value="all_time">All Time</option>
-                  </select>
+
+                  {/* Season + Game Combobox Filters */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    <select
+                      value={bestPlayerSeason}
+                      onChange={(e) => setBestPlayerSeason(e.target.value)}
+                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-[11px] font-medium text-warm-text focus:outline-none focus:border-warm-amber cursor-pointer"
+                    >
+                      <option value="current">Current Season</option>
+                      <option value="2026">Tahun 2026</option>
+                      <option value="2025">Tahun 2025</option>
+                      <option value="all_time">All Time</option>
+                    </select>
+
+                    <select
+                      value={bestPlayerGame}
+                      onChange={(e) => setBestPlayerGame(e.target.value)}
+                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-[11px] font-medium text-warm-text focus:outline-none focus:border-warm-amber cursor-pointer"
+                    >
+                      <option value="all">All Games</option>
+                      {games.map((g) => (
+                        <option key={g.id_game} value={g.id_game}>
+                          {g.name_game}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="text-center py-2 space-y-3">
+                <div className="text-center py-1 space-y-3">
                   <h3 className="text-xl font-bold text-warm-text tracking-wide">
                     {bestPlayer ? bestPlayer.name : 'No Data'}
                   </h3>
@@ -340,16 +364,42 @@ export default function DashboardPage() {
               </div>
 
               {/* Worst Player Card */}
-              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-crimson/40 transition-all duration-300">
-                <div className="flex items-center justify-between mb-4">
+              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-crimson/40 transition-all duration-300 space-y-4">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-warm-crimson font-semibold text-sm">
                     <Skull className="w-4 h-4" />
                     <span>Worst Player</span>
                   </div>
-                  <span className="text-xs text-warm-subtle font-medium">Lowest Score</span>
+
+                  {/* Season + Game Combobox Filters */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    <select
+                      value={worstPlayerSeason}
+                      onChange={(e) => setWorstPlayerSeason(e.target.value)}
+                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-[11px] font-medium text-warm-text focus:outline-none focus:border-warm-crimson cursor-pointer"
+                    >
+                      <option value="current">Current Season</option>
+                      <option value="2026">Tahun 2026</option>
+                      <option value="2025">Tahun 2025</option>
+                      <option value="all_time">All Time</option>
+                    </select>
+
+                    <select
+                      value={worstPlayerGame}
+                      onChange={(e) => setWorstPlayerGame(e.target.value)}
+                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-[11px] font-medium text-warm-text focus:outline-none focus:border-warm-crimson cursor-pointer"
+                    >
+                      <option value="all">All Games</option>
+                      {games.map((g) => (
+                        <option key={g.id_game} value={g.id_game}>
+                          {g.name_game}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="text-center py-2 space-y-3">
+                <div className="text-center py-1 space-y-3">
                   <h3 className="text-xl font-bold text-warm-text tracking-wide">
                     {worstPlayer ? worstPlayer.name : 'No Data'}
                   </h3>
@@ -386,35 +436,53 @@ export default function DashboardPage() {
               </div>
 
               {/* Last Loser Card */}
-              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-terracotta/40 transition-all duration-300">
-                <div className="flex items-center justify-between mb-4">
+              <div className="glass-warm rounded-2xl p-5 border border-warm-border hover:border-warm-terracotta/40 transition-all duration-300 space-y-4">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-warm-terracotta font-semibold text-sm">
                     <Trophy className="w-4 h-4 rotate-180" />
                     <span>Last Loser</span>
                   </div>
-                  <select
-                    value={lastLoserSeason}
-                    onChange={(e) => setLastLoserSeason(e.target.value)}
-                    className="py-1 px-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-warm-text"
-                  >
-                    <option value="current">Current Season</option>
-                    <option value="2026">Tahun 2026</option>
-                    <option value="2025">Tahun 2025</option>
-                    <option value="all_time">All Time</option>
-                  </select>
+
+                  {/* Season + Game Combobox Filters */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    <select
+                      value={lastLoserSeason}
+                      onChange={(e) => setLastLoserSeason(e.target.value)}
+                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-[11px] font-medium text-warm-text focus:outline-none focus:border-warm-terracotta cursor-pointer"
+                    >
+                      <option value="current">Current Season</option>
+                      <option value="2026">Tahun 2026</option>
+                      <option value="2025">Tahun 2025</option>
+                      <option value="all_time">All Time</option>
+                    </select>
+
+                    <select
+                      value={lastLoserGame}
+                      onChange={(e) => setLastLoserGame(e.target.value)}
+                      className="py-1 px-2 rounded-lg bg-warm-bg border border-warm-border text-[11px] font-medium text-warm-text focus:outline-none focus:border-warm-terracotta cursor-pointer"
+                    >
+                      <option value="all">All Games</option>
+                      {games.map((g) => (
+                        <option key={g.id_game} value={g.id_game}>
+                          {g.name_game}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="text-center py-4 space-y-2">
+                <div className="text-center py-2 space-y-2">
                   <h3 className="text-xl font-bold text-warm-text tracking-wide">
                     {lastLoser ? lastLoser.name_player : 'No Loser Found'}
                   </h3>
                   <p className="text-xs text-warm-muted">
                     {lastLoser ? (
                       <>
-                        Lost on <span className="notranslate" translate="no">{formatGameDate(lastLoser.date)}</span> at{' '}
+                        Lost on <span className="notranslate font-semibold" translate="no">{formatGameDate(lastLoser.date)}</span> at{' '}
                         <span className="text-warm-amber font-medium">
                           {lastLoser.name_place}
-                        </span>
+                        </span>{' '}
+                        (<span className="text-warm-gold font-semibold">{lastLoser.name_game}</span>)
                       </>
                     ) : (
                       'No matches recorded for filter'
