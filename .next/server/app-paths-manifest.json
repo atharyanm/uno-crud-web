@@ -4,6 +4,7 @@
   "/api/rest/[table]/route": "app/api/rest/[table]/route.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/game/page": "app/game/page.js",
+  "/icon.svg/route": "app/icon.svg/route.js",
   "/login/page": "app/login/page.js",
   "/page": "app/page.js",
   "/place/page": "app/place/page.js",
