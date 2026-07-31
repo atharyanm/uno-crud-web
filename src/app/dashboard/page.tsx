@@ -311,28 +311,28 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-3 gap-2 py-2 border-y border-warm-border/50">
                     <div>
                       <CheckCircle2 className="w-4 h-4 text-warm-emerald mx-auto mb-1" />
-                      <p className="text-sm font-bold text-warm-text">
+                      <p className="text-sm font-bold text-warm-text notranslate" translate="no">
                         {bestPlayer ? bestPlayer.wins : 0}
                       </p>
                       <span className="text-[10px] text-warm-subtle">Wins</span>
                     </div>
                     <div>
                       <XCircle className="w-4 h-4 text-warm-crimson mx-auto mb-1" />
-                      <p className="text-sm font-bold text-warm-text">
+                      <p className="text-sm font-bold text-warm-text notranslate" translate="no">
                         {bestPlayer ? bestPlayer.losses : 0}
                       </p>
                       <span className="text-[10px] text-warm-subtle">Losses</span>
                     </div>
                     <div>
                       <Gamepad2 className="w-4 h-4 text-warm-amber mx-auto mb-1" />
-                      <p className="text-sm font-bold text-warm-text">
+                      <p className="text-sm font-bold text-warm-text notranslate" translate="no">
                         {bestPlayer ? bestPlayer.total : 0}
                       </p>
                       <span className="text-[10px] text-warm-subtle">Matches</span>
                     </div>
                   </div>
 
-                  <p className="text-xs font-semibold text-warm-amber pt-1">
+                  <p className="text-xs font-semibold text-warm-amber pt-1 notranslate" translate="no">
                     {bestPlayer ? bestPlayer.points : 0} Points &bull;{' '}
                     {bestPlayer ? bestPlayer.winrate.toFixed(1) : 0}% Winrate
                   </p>
@@ -357,28 +357,28 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-3 gap-2 py-2 border-y border-warm-border/50">
                     <div>
                       <CheckCircle2 className="w-4 h-4 text-warm-emerald mx-auto mb-1" />
-                      <p className="text-sm font-bold text-warm-text">
+                      <p className="text-sm font-bold text-warm-text notranslate" translate="no">
                         {worstPlayer ? worstPlayer.wins : 0}
                       </p>
                       <span className="text-[10px] text-warm-subtle">Wins</span>
                     </div>
                     <div>
                       <XCircle className="w-4 h-4 text-warm-crimson mx-auto mb-1" />
-                      <p className="text-sm font-bold text-warm-text">
+                      <p className="text-sm font-bold text-warm-text notranslate" translate="no">
                         {worstPlayer ? worstPlayer.losses : 0}
                       </p>
                       <span className="text-[10px] text-warm-subtle">Losses</span>
                     </div>
                     <div>
                       <Gamepad2 className="w-4 h-4 text-warm-amber mx-auto mb-1" />
-                      <p className="text-sm font-bold text-warm-text">
+                      <p className="text-sm font-bold text-warm-text notranslate" translate="no">
                         {worstPlayer ? worstPlayer.total : 0}
                       </p>
                       <span className="text-[10px] text-warm-subtle">Matches</span>
                     </div>
                   </div>
 
-                  <p className="text-xs font-semibold text-warm-crimson pt-1">
+                  <p className="text-xs font-semibold text-warm-crimson pt-1 notranslate" translate="no">
                     {worstPlayer ? worstPlayer.points : 0} Points &bull;{' '}
                     {worstPlayer ? worstPlayer.winrate.toFixed(1) : 0}% Winrate
                   </p>
@@ -411,7 +411,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-warm-muted">
                     {lastLoser ? (
                       <>
-                        Lost on {formatGameDate(lastLoser.date)} at{' '}
+                        Lost on <span className="notranslate" translate="no">{formatGameDate(lastLoser.date)}</span> at{' '}
                         <span className="text-warm-amber font-medium">
                           {lastLoser.name_place}
                         </span>
@@ -477,7 +477,7 @@ export default function DashboardPage() {
                   <tr>
                     <th className="py-3.5 px-4 font-semibold text-center w-16">Rank</th>
                     <th className="py-3.5 px-4 font-semibold">Player</th>
-                    <th className="py-3.5 px-4 font-semibold text-center">Points</th>
+                    <th className="py-3.5 px-4 font-semibold text-center">Poin</th>
                     <th className="py-3.5 px-4 font-semibold text-center">Wins</th>
                     <th className="py-3.5 px-4 font-semibold text-center">Losses</th>
                     <th className="py-3.5 px-4 font-semibold text-center">Winrate (%)</th>
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                         key={player.name}
                         className="hover:bg-warm-cardHover/50 transition-colors"
                       >
-                        <td className="py-3.5 px-4 text-center font-bold">
+                        <td className="py-3.5 px-4 text-center font-bold notranslate" translate="no">
                           {idx === 0 ? (
                             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warm-amber/20 text-warm-amber border border-warm-amber/40 text-xs font-black">
                               1
@@ -517,19 +517,19 @@ export default function DashboardPage() {
                         <td className="py-3.5 px-4 font-semibold text-warm-text">
                           {player.name}
                         </td>
-                        <td className="py-3.5 px-4 text-center font-bold text-warm-amber">
+                        <td className="py-3.5 px-4 text-center font-bold text-warm-amber notranslate" translate="no">
                           {player.points}
                         </td>
-                        <td className="py-3.5 px-4 text-center text-warm-emerald font-medium">
+                        <td className="py-3.5 px-4 text-center text-warm-emerald font-medium notranslate" translate="no">
                           {player.wins}
                         </td>
-                        <td className="py-3.5 px-4 text-center text-warm-crimson font-medium">
+                        <td className="py-3.5 px-4 text-center text-warm-crimson font-medium notranslate" translate="no">
                           {player.losses}
                         </td>
-                        <td className="py-3.5 px-4 text-center font-semibold text-warm-text">
+                        <td className="py-3.5 px-4 text-center font-semibold text-warm-text notranslate" translate="no">
                           {player.winrate.toFixed(1)}%
                         </td>
-                        <td className="py-3.5 px-4 text-center text-warm-muted">
+                        <td className="py-3.5 px-4 text-center text-warm-muted notranslate" translate="no">
                           {player.total}
                         </td>
                       </tr>
@@ -670,7 +670,7 @@ export default function DashboardPage() {
                         key={game.id || i}
                         className="hover:bg-warm-cardHover/50 transition-colors"
                       >
-                        <td className="py-3.5 px-4 text-warm-muted font-medium text-xs">
+                        <td className="py-3.5 px-4 text-warm-muted font-medium text-xs notranslate" translate="no">
                           {formatGameDate(game.date)}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-warm-text">
