@@ -50,6 +50,12 @@ export async function POST(
     const { table } = await params;
     const data = await request.json();
 
+    // Auto-generate integer id for Data table if not provided
+    if (table === 'Data' && (!data.id || data.id === undefined)) {
+      const maxRes = await pool.query(`SELECT COALESCE(MAX("id"), 0) + 1 AS next_id FROM "Data"`);
+      data.id = parseInt(maxRes.rows[0].next_id);
+    }
+
     const keys = Object.keys(data);
     const values = Object.values(data);
 

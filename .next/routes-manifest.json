@@ -75,6 +75,12 @@
       "namedRegex": "^/login(?:/)?$"
     },
     {
+      "page": "/match",
+      "regex": "^/match(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/match(?:/)?$"
+    },
+    {
       "page": "/place",
       "regex": "^/place(?:/)?$",
       "routeKeys": {},

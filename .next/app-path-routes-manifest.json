@@ -6,6 +6,7 @@
   "/game/page": "/game",
   "/icon.svg/route": "/icon.svg",
   "/login/page": "/login",
+  "/match/page": "/match",
   "/page": "/",
   "/place/page": "/place",
   "/player/page": "/player",

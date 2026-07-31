@@ -9,6 +9,7 @@ import {
   MapPin,
   UserCheck,
   Gamepad2,
+  Trophy,
   LogOut,
   Menu,
   X,
@@ -41,6 +42,7 @@ export default function Sidebar() {
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, role: 'all' },
+    { name: 'Match Management', href: '/match', icon: Trophy, role: 'admin' },
     { name: 'Players', href: '/player', icon: Users, role: 'admin' },
     { name: 'Places', href: '/place', icon: MapPin, role: 'admin' },
     { name: 'Games', href: '/game', icon: Gamepad2, role: 'admin' },
