@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_fCiRrntQXE05@ep-crimson-resonance-az0bsitd-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require',
     ssl: { rejectUnauthorized: false }
 });
 
@@ -129,6 +129,11 @@ app.delete('/rest/v1/:table', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT} with Neon PostgreSQL backend`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT} with Neon PostgreSQL backend`);
+    });
+}
+
+module.exports = app;
+
